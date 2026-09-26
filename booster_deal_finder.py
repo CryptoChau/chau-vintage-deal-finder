@@ -336,6 +336,10 @@ def find_deals(cards):
     by_key = {}
     for c in cards:
         by_key.setdefault(c["key"], []).append(c["total"])
+    # Diagnose 2026-09-26: warum kommen nie Vintage-Deals durch? Pro Key alle Preise loggen.
+    for key in sorted(by_key):
+        vals = sorted(by_key[key])
+        log(f"  key {key}: n={len(vals)} preise={vals}")
     deals = []
     for c in cards:
         vals = by_key[c["key"]]
