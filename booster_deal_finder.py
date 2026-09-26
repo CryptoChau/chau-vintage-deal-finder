@@ -105,7 +105,17 @@ EXCLUDE_PACK = re.compile(
     r"\d{2,}\s*x\b|\d{2,}\s*stk|\d{2,}\s*stück|\d{2,}\s*pcs|"
     r"proxy|custom|fake|replica|orica|repro|empty|leer|geöffnet|opened|open\b|pulled|"
     r"einzelkarte|single\s*card|used|gebraucht|"
-    r"sleeve\b|binder|toploader|deck\s*box|playmat)\b"
+    r"sleeve\b|binder|toploader|deck\s*box|playmat|"
+    # Digitale/virtuelle Codes (Pokemon TCG Live) sind ein komplett anderes Produkt als eine
+    # physische Packung und wuerden den Median voellig verzerren (gefunden 2026-09-26: "Digital
+    # Booster Pack Codes", "TCG Live Booster Pack Code Cards" landeten faelschlich im Pool).
+    r"code\b|codes\b|tcg\s*live|digital|instant\s*delivery|e-?mail\s*delivery|"
+    # Zubehoer/Merchandise, das nur zufaellig "Booster Pack" im Text erwaehnt, aber selbst
+    # keine Packung ist (Portfolio/Album mit Packungs-Zugabe, unrelated Fanartikel).
+    r"portfolio|album|magnet|puzzle|sticker\s*sheet|"
+    # Promo-/Sonderausgaben (z.B. KFC-Tie-in) sind ein anderes Produkt als der Standard-
+    # Retail-Booster und verzerren den Vergleichspreis ebenso.
+    r"\bpromo\b|\bkfc\b)\b"
     r"|\b\d{1,3}\s*/\s*\d{1,3}\b",  # Kartennummer wie "200/197" -> Einzelkarten-Listing, kein Pack
     re.I,
 )
