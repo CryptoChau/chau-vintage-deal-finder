@@ -2,3 +2,7 @@ __pycache__/
 *.pyc
 deal_finder.lock
 deal_finder.log
+booster_finder.lock
+booster_finder.log
+psa_finder.lock
+psa_finder.log

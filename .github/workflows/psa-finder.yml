@@ -1,0 +1,69 @@
+name: CHAU PSA Vintage Deal Finder
+
+# Laeuft alle 2 Stunden (versetzt zu den beiden bestehenden Workflows, die auf Minute 6 und 36
+# laufen) und postet PSA-gegradete (PSA 1-10) Vintage-Pokemon-Einzelkarten-Deals von eBay.ch in
+# Discord (#psa-vintage-deals). Kein BGS/CGC/ungegradet - siehe psa_vintage_deal_finder.py.
+on:
+  schedule:
+    - cron: "21 */2 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Nur testen (kein Discord-Post, kein State-Commit)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: psa-deal-finder
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  find-deals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run PSA deal finder (xvfb = virtueller Bildschirm fuer echten Headed-Chromium)
+        env:
+          DISCORD_WEBHOOK_PSA: ${{ secrets.DISCORD_WEBHOOK_PSA }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          ARGS=""
+          if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi
+          xvfb-run -a --server-args="-screen 0 1280x900x24" python psa_vintage_deal_finder.py $ARGS
+
+      - name: Persist psa_state.json
+        run: |
+          git config user.name "chau-deal-finder-bot"
+          git config user.email "actions@users.noreply.github.com"
+          cp psa_state.json /tmp/state_fresh.json 2>/dev/null || true
+          git add psa_state.json 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Update PSA state [skip ci]"
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rejected, retrying ($i/5) ..."
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/state_fresh.json psa_state.json 2>/dev/null || true
+            git add psa_state.json 2>/dev/null || true
+            git diff --cached --quiet || git commit -m "Update PSA state [skip ci]"
+          done
+          echo "Push failed after 5 retries" >&2
+          exit 1
