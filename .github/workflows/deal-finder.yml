@@ -3,16 +3,23 @@ name: CHAU Vintage Deal Finder
 # Laeuft alle 2 Stunden (Nutzerwunsch 2026-09-26: "soll ohne Computer laufen") und postet
 # Vintage-Pokemon-Holo/PSA-Deals von eBay.ch in Discord (#ebay-vintage-deals).
 #
-# eBay blockt echten Headless-Chrome (getestet 2026-09-26: urllib, curl, Playwright
+# eBay blockt echten Headless-Chrome (getestet 2026-09-26 LOKAL: urllib, curl, Playwright
 # headless=True, Chrome "--headless=new" und sogar camoufox headless liefern alle nur eine
-# leere Fehlerseite/Stub, egal ob lokal oder auf GitHub Actions). Nur ein "echter" (headed)
-# Chromium-Prozess funktioniert - deshalb xvfb-run: startet einen virtuellen X-Server, damit
-# Chromium ganz normal "headed" (ohne --headless-Flag) starten kann, ohne dass ein echter
-# Bildschirm noetig ist.
+# leere Fehlerseite/Stub). Nur ein "echter" (headed) Chromium-Prozess funktioniert lokal -
+# deshalb xvfb-run: startet einen virtuellen X-Server, damit Chromium ganz normal "headed"
+# (ohne --headless-Flag) starten kann, ohne dass ein echter Bildschirm noetig ist. Ob das auch
+# von einer GitHub-Actions-Runner-IP aus klappt, ist Stand 2026-09-26 noch nicht verifiziert
+# (erster workflow_dispatch-Testlauf steht aus) - dry_run-Input erlaubt einen Test ganz ohne
+# Discord-Webhook.
 on:
   schedule:
     - cron: "6 */2 * * *"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Nur testen (kein Discord-Post, kein State-Commit)"
+        type: boolean
+        default: false
 
 concurrency:
   group: vintage-deal-finder
@@ -42,7 +49,11 @@ jobs:
       - name: Run deal finder (xvfb = virtueller Bildschirm fuer echten Headed-Chromium)
         env:
           DISCORD_WEBHOOK_HOLO: ${{ secrets.DISCORD_WEBHOOK_HOLO }}
-        run: xvfb-run -a --server-args="-screen 0 1280x900x24" python vintage_deal_finder.py
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          ARGS=""
+          if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi
+          xvfb-run -a --server-args="-screen 0 1280x900x24" python vintage_deal_finder.py $ARGS
 
       - name: Persist deal_state.json
         run: |
