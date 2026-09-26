@@ -332,11 +332,22 @@ def classify(items):
     return out
 
 
-def find_deals(cards):
+HISTORY_MAX_DAYS = 120  # so lange bleibt ein nicht mehr gesehenes Angebot als Preisreferenz erhalten
+
+
+def find_deals(cards, history):
     by_key = {}
     for c in cards:
         by_key.setdefault(c["key"], []).append(c["total"])
-    # Diagnose 2026-09-26: warum kommen nie Vintage-Deals durch? Pro Key alle Preise loggen.
+    # Preishistorie fruehere Laeufe dazumischen (auch laengst verkaufte/entfernte Angebote) -
+    # bei seltenen Sets (v.a. Vintage) sind fast nie 3+ Angebote GLEICHZEITIG aktiv, dann reicht
+    # es nie fuer einen verlaesslichen Medianvergleich. Nutzerwunsch 2026-09-26: genau die
+    # Faelle finden, wo der Markt sich bewegt hat und ein Verkaeufer den Preis nicht nachzieht -
+    # das braucht einen Referenzwert ueber die Zeit, nicht nur eine einzelne Momentaufnahme.
+    for key, bucket in history.items():
+        vals = [v["total"] for v in bucket.values()]
+        by_key.setdefault(key, [])
+        by_key[key] = by_key[key] + vals
     for key in sorted(by_key):
         vals = sorted(by_key[key])
         log(f"  key {key}: n={len(vals)} preise={vals}")
@@ -355,13 +366,38 @@ def find_deals(cards):
     return deals
 
 
+def update_history(history, cards):
+    """Traegt die aktuell klassifizierten Angebote in die Preishistorie ein (pro Set+Sprache,
+    dedupliziert nach Angebots-ID) und entfernt Eintraege, die seit HISTORY_MAX_DAYS nicht mehr
+    gesehen wurden (vermutlich verkauft/entfernt)."""
+    today = datetime.now().strftime("%Y-%m-%d")
+    for c in cards:
+        bucket = history.setdefault(c["key"], {})
+        bucket[c["id"]] = {"total": c["total"], "last_seen": today}
+    cutoff = datetime.now().timestamp() - HISTORY_MAX_DAYS * 86400
+    for key in list(history.keys()):
+        bucket = history[key]
+        for lid in list(bucket.keys()):
+            try:
+                ts = datetime.strptime(bucket[lid]["last_seen"], "%Y-%m-%d").timestamp()
+            except Exception:
+                ts = 0
+            if ts < cutoff:
+                del bucket[lid]
+        if not bucket:
+            del history[key]
+
+
 def load_state():
     if RESET or not os.path.exists(STATE_FILE):
-        return {"seen": {}}
+        return {"seen": {}, "history": {}}
     try:
-        return json.load(open(STATE_FILE, encoding="utf-8"))
+        st = json.load(open(STATE_FILE, encoding="utf-8"))
+        st.setdefault("seen", {})
+        st.setdefault("history", {})
+        return st
     except Exception:
-        return {"seen": {}}
+        return {"seen": {}, "history": {}}
 
 
 def save_state(st):
@@ -434,7 +470,10 @@ def main():
             browser.close()
 
         cards = classify(items)
-        deals = find_deals(cards)
+        # find_deals() nutzt die BISHERIGE Historie (Stand vor diesem Lauf) - erst danach wird
+        # der aktuelle Lauf selbst in die Historie eingetragen, sonst wuerden die eigenen
+        # Live-Angebote doppelt gezaehlt (einmal aus `cards`, einmal aus der Historie).
+        deals = find_deals(cards, st["history"])
         log(f"{len(items)} Angebote geladen (eBay+Ricardo), {len(cards)} klassifiziert, {len(deals)} Deals gesamt")
         new = [d for d in deals if d["id"] not in st["seen"]][:MAX_POSTS_PER_RUN]
         for d in deals[:25]:
@@ -445,6 +484,7 @@ def main():
             return
         if new:
             post_discord(webhook, new)
+        update_history(st["history"], cards)
         for d in new:
             st["seen"][d["id"]] = datetime.now().strftime("%Y-%m-%d")
         cutoff = datetime.now().timestamp() - 60 * 86400
