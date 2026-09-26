@@ -3,9 +3,13 @@
 CHAU Booster-Pack-Deal-Finder
 ==============================
 Durchsucht eBay.ch UND Ricardo.ch (beide Sofort-Kaufen/"Sofort kaufen") nach einzelnen,
-versiegelten Pokemon-Booster-PACKS (nicht Boxen/Displays!) quer durch beliebte Sets -
-Vintage (Base Set, Jungle, Fossil, Team Rocket, Gym, Neo) bis moderne Sets mit gefragten
-Hit-Karten (151, Prismatic Evolutions, Paldean Fates, Astral Radiance, Mega Evolution, ...).
+versiegelten Pokemon-Booster-PACKS (nicht Boxen/Displays!) quer durch beliebte Sets, die
+NICHT MEHR aktiv nachgedruckt werden (Nutzerwunsch 2026-09-26) - Vintage (Base Set, Jungle,
+Fossil, Team Rocket, Gym, Neo) bis abgeloeste moderne Sets mit gefragten Hit-Karten (151,
+Prismatic Evolutions, Paldean Fates, Astral Radiance, ...). Aktuell noch aktiv nachgelieferte
+Sets (Stand 2026-09-26: White Flare/Black Bolt/Mega Evolution, siehe #restock-monitor) sind
+bewusst NICHT dabei - solange ein Set ueberall zum Listenpreis nachkommt, ist ein guenstiges
+Angebot kein echter Deal, nur eine echte Verknappung treibt den Wert.
 Berechnet pro Set+Sprache einen Referenzpreis (Median aller aktuellen Angebote beider
 Plattformen zusammen) und meldet Angebote deutlich unter diesem Median in Discord
 (Webhook DISCORD_WEBHOOK_BOOSTER, Kanal #booster-pack-deals) - mit Foto und Link.
@@ -86,9 +90,12 @@ SETS = [
     ("Astral Radiance", "astral radiance", False),
     ("Crown Zenith", "crown zenith", False),
     ("Celebrations", "celebrations", False),
-    ("White Flare", "white flare", False),
-    ("Black Bolt", "black bolt", False),
-    ("Mega Evolution", "mega evolution", False),
+    # Nutzerwunsch 2026-09-26: nur Sets, die NICHT mehr aktiv nachgedruckt werden (nur bei
+    # Auslaufen/Absetzen entsteht echte Knappheit/Wertsteigerung - laufend produzierte Sets
+    # sind ueberall zum Listenpreis verfuegbar). White Flare/Black Bolt/Mega Evolution sind
+    # laut #restock-monitor die aktuell noch aktiv beworbene/nachgelieferte Generation und
+    # deshalb bewusst NICHT in dieser Liste - bei Bedarf spaeter wieder aufnehmen, sobald sie
+    # durch eine neuere Generation abgeloest und nicht mehr nachgedruckt werden.
 ]
 
 # Nur fuer schnelle Testlaeufe: BOOSTER_TEST_LIMIT=3 begrenzt SETS auf die ersten N Eintraege,
