@@ -91,6 +91,13 @@ SETS = [
     ("Mega Evolution", "mega evolution", False),
 ]
 
+# Nur fuer schnelle Testlaeufe: BOOSTER_TEST_LIMIT=3 begrenzt SETS auf die ersten N Eintraege,
+# damit ein Testlauf nicht jedes Mal 15+ Minuten dauert. In normalen/geplanten Laeufen NICHT
+# gesetzt -> volle Liste.
+_test_limit = os.environ.get("BOOSTER_TEST_LIMIT")
+if _test_limit:
+    SETS = SETS[: int(_test_limit)]
+
 # Titel muss "Booster Pack" (oder Kurzform) enthalten, aber NICHT Box/Display/Case/Bulk-Lot.
 PACK_PATTERN = re.compile(r"\bbooster\W{0,3}pack\b|\bboosterpack\b", re.I)
 EXCLUDE_PACK = re.compile(
@@ -237,17 +244,20 @@ def _ricardo_price_and_title(lines):
     return price, title
 
 
-def fetch_ricardo(ctx):
-    # Bug gefunden 2026-09-26: bei Wiederverwendung derselben Page fuer alle Suchen lieferte
-    # NUR die allererste Ricardo-Suche echte Treffer, alle folgenden 0 (vermutlich serverseitiges
-    # Rate-Limiting/Cloudflare-Verhalten pro Session bei schnellen Folge-Requests). Fix: pro Suche
-    # eine frische Page (= frischer Tab, neue Session-Anmutung) plus deutlich mehr Wartezeit.
+def fetch_ricardo(browser):
+    # Bug gefunden 2026-09-26: bei Wiederverwendung derselben Page ODER desselben Contexts
+    # (nur frische Page pro Suche reichte NICHT) lieferte NUR die allererste Ricardo-Suche
+    # echte Treffer, alle folgenden 0 - die Cloudflare-Freigabe scheint an den Browser-CONTEXT
+    # (Cookies/Storage) gebunden zu sein und wird nach mehreren schnellen Suchen in derselben
+    # Sitzung entzogen. Fix: pro Suche ein komplett frischer Context (= frischer "Besucher"),
+    # nicht nur eine frische Page, plus deutlich mehr Wartezeit.
     out = {}
     for name, needle, _jp in SETS:
         q = f"pokemon {needle} booster pack"
         url = "https://www.ricardo.ch/de/s/" + urllib.parse.quote(q) + "/"
         rows = []
         for attempt in range(3):
+            ctx = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900})
             page = ctx.new_page()
             try:
                 page.goto(url, timeout=45000, wait_until="domcontentloaded")
@@ -256,7 +266,7 @@ def fetch_ricardo(ctx):
             except Exception as e:
                 log(f"Ricardo Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
             finally:
-                page.close()
+                ctx.close()
             if rows:
                 break
             time.sleep(4)
@@ -391,7 +401,7 @@ def main():
             page = ctx.new_page()
             items = {}
             items.update(fetch_ebay(page))
-            items.update(fetch_ricardo(ctx))
+            items.update(fetch_ricardo(browser))
             browser.close()
 
         cards = classify(items)

@@ -13,6 +13,10 @@ on:
         description: "Nur testen (kein Discord-Post, kein State-Commit)"
         type: boolean
         default: false
+      test_limit:
+        description: "Nur die ersten N Sets pruefen (0 = alle, fuer schnelle Tests)"
+        type: string
+        default: "0"
 
 concurrency:
   group: booster-deal-finder
@@ -43,9 +47,11 @@ jobs:
         env:
           DISCORD_WEBHOOK_BOOSTER: ${{ secrets.DISCORD_WEBHOOK_BOOSTER }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          BOOSTER_TEST_LIMIT: ${{ inputs.test_limit }}
         run: |
           ARGS=""
           if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi
+          if [ "$BOOSTER_TEST_LIMIT" = "0" ]; then unset BOOSTER_TEST_LIMIT; fi
           xvfb-run -a --server-args="-screen 0 1280x900x24" python booster_deal_finder.py $ARGS
 
       - name: Persist booster_state.json
