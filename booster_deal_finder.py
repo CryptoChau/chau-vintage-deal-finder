@@ -72,7 +72,7 @@ SETS = [
     ("Neo Revelation", "neo revelation", False),
     ("Neo Destiny", "neo destiny", False),
     # ---- Moderne, gefragte Sets mit bekannten Hit-Karten ----
-    ("151", "pokemon 151", False),
+    ("151", "151", False),
     ("Paldean Fates", "paldean fates", False),
     ("Prismatic Evolutions", "prismatic evolutions", False),
     ("Destined Rivals", "destined rivals", False),
@@ -96,8 +96,23 @@ PACK_PATTERN = re.compile(r"\bbooster\W{0,3}pack\b|\bboosterpack\b", re.I)
 EXCLUDE_PACK = re.compile(
     r"\b(box|display|case|karton|bundle|lot\b|sammlung|collection|sealed\s*box|"
     r"\d{2,}\s*x\b|\d{2,}\s*stk|\d{2,}\s*stück|\d{2,}\s*pcs|"
-    r"proxy|custom|fake|replica|orica|repro|empty|leer|geöffnet|opened|used|gebraucht|"
-    r"sleeve\b|binder|toploader|deck\s*box|playmat)\b",
+    r"proxy|custom|fake|replica|orica|repro|empty|leer|geöffnet|opened|open\b|pulled|"
+    r"einzelkarte|single\s*card|used|gebraucht|"
+    r"sleeve\b|binder|toploader|deck\s*box|playmat)\b"
+    r"|\b\d{1,3}\s*/\s*\d{1,3}\b",  # Kartennummer wie "200/197" -> Einzelkarten-Listing, kein Pack
+    re.I,
+)
+
+# "Base Set" wird umgangssprachlich auch fuer das Starter-/Grundset JEDER Aera verwendet
+# (z.B. "Sonne & Mond Base Set", "Sword & Shield Base Set") - das ist NICHT das wertvolle
+# Original-Base-Set von 1996/1998. Bei Treffer auf "Base Set" muss sichergestellt sein, dass
+# keine dieser modernen Aera-Marker im selben Titel stehen, sonst komplett falscher/verzerrter
+# Vergleichspreis (Bug gefunden 2026-09-26: Median CHF 708 durch Vermischung mit ~5-CHF-Packs).
+NOT_VINTAGE_ERA = re.compile(
+    r"sonne\s*&?\s*mond|sun\s*&?\s*moon|sword\s*&?\s*shield|schwert\s*&?\s*schild|"
+    r"scarlet\s*&?\s*violet|scharlachrot\s*&?\s*violett|black\s*&?\s*white(?!\s*promo)|"
+    r"schwarz\s*&?\s*wei|diamond\s*&?\s*pearl|diamant\s*&?\s*perle|platinum|platin|"
+    r"heartgold|soulsilver|xy\d|\bsm\d|\bswsh\d|\bsv\d\b",
     re.I,
 )
 
@@ -106,6 +121,8 @@ def detect_set(t):
     for name, needle, is_jp in SETS:
         pat = re.escape(needle).replace(r"\ ", r"[\s-]*")
         if re.search(pat, t, re.I):
+            if name in ("Base Set", "Base Set (JP)") and NOT_VINTAGE_ERA.search(t):
+                continue
             return name, is_jp
     return None, False
 
@@ -220,22 +237,29 @@ def _ricardo_price_and_title(lines):
     return price, title
 
 
-def fetch_ricardo(page):
+def fetch_ricardo(ctx):
+    # Bug gefunden 2026-09-26: bei Wiederverwendung derselben Page fuer alle Suchen lieferte
+    # NUR die allererste Ricardo-Suche echte Treffer, alle folgenden 0 (vermutlich serverseitiges
+    # Rate-Limiting/Cloudflare-Verhalten pro Session bei schnellen Folge-Requests). Fix: pro Suche
+    # eine frische Page (= frischer Tab, neue Session-Anmutung) plus deutlich mehr Wartezeit.
     out = {}
     for name, needle, _jp in SETS:
         q = f"pokemon {needle} booster pack"
         url = "https://www.ricardo.ch/de/s/" + urllib.parse.quote(q) + "/"
         rows = []
         for attempt in range(3):
+            page = ctx.new_page()
             try:
                 page.goto(url, timeout=45000, wait_until="domcontentloaded")
                 page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
                 rows = page.evaluate(RICARDO_EXTRACT_JS)
             except Exception as e:
                 log(f"Ricardo Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
+            finally:
+                page.close()
             if rows:
                 break
-            time.sleep(3)
+            time.sleep(4)
         new = 0
         for r in rows:
             price, title = _ricardo_price_and_title(r["lines"])
@@ -251,7 +275,7 @@ def fetch_ricardo(page):
                                 img=img, url=r["href"], source="Ricardo.ch", country="Schweiz", query=q)
                 new += 1
         log(f"Ricardo '{q}': {len(rows)} Treffer, {new} neu")
-        time.sleep(0.8)
+        time.sleep(3.0)
     return out
 
 
@@ -367,7 +391,7 @@ def main():
             page = ctx.new_page()
             items = {}
             items.update(fetch_ebay(page))
-            items.update(fetch_ricardo(page))
+            items.update(fetch_ricardo(ctx))
             browser.close()
 
         cards = classify(items)
