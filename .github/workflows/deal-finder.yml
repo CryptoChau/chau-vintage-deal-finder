@@ -1,0 +1,66 @@
+name: CHAU Vintage Deal Finder
+
+# Laeuft alle 2 Stunden (Nutzerwunsch 2026-09-26: "soll ohne Computer laufen") und postet
+# Vintage-Pokemon-Holo/PSA-Deals von eBay.ch in Discord (#ebay-vintage-deals).
+#
+# eBay blockt echten Headless-Chrome (getestet 2026-09-26: urllib, curl, Playwright
+# headless=True, Chrome "--headless=new" und sogar camoufox headless liefern alle nur eine
+# leere Fehlerseite/Stub, egal ob lokal oder auf GitHub Actions). Nur ein "echter" (headed)
+# Chromium-Prozess funktioniert - deshalb xvfb-run: startet einen virtuellen X-Server, damit
+# Chromium ganz normal "headed" (ohne --headless-Flag) starten kann, ohne dass ein echter
+# Bildschirm noetig ist.
+on:
+  schedule:
+    - cron: "6 */2 * * *"
+  workflow_dispatch: {}
+
+concurrency:
+  group: vintage-deal-finder
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  find-deals:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y xvfb
+          pip install -r requirements.txt
+          playwright install --with-deps chromium
+
+      - name: Run deal finder (xvfb = virtueller Bildschirm fuer echten Headed-Chromium)
+        env:
+          DISCORD_WEBHOOK_HOLO: ${{ secrets.DISCORD_WEBHOOK_HOLO }}
+        run: xvfb-run -a --server-args="-screen 0 1280x900x24" python vintage_deal_finder.py
+
+      - name: Persist deal_state.json
+        run: |
+          git config user.name "chau-deal-finder-bot"
+          git config user.email "actions@users.noreply.github.com"
+          cp deal_state.json /tmp/state_fresh.json 2>/dev/null || true
+          git add deal_state.json 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "Update state [skip ci]"
+          for i in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "Push rejected, retrying ($i/5) ..."
+            git fetch origin main
+            git reset --hard origin/main
+            cp /tmp/state_fresh.json deal_state.json 2>/dev/null || true
+            git add deal_state.json 2>/dev/null || true
+            git diff --cached --quiet || git commit -m "Update state [skip ci]"
+          done
+          echo "Push failed after 5 retries" >&2
+          exit 1

@@ -1,0 +1,4 @@
+__pycache__/
+*.pyc
+deal_finder.lock
+deal_finder.log
