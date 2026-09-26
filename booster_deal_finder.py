@@ -55,7 +55,7 @@ RESET = "--reset" in sys.argv
 MIN_TOTAL = 4.0
 MAX_TOTAL = 900.0
 DEAL_RATIO = 0.72
-MIN_SAMPLES = 4
+MIN_SAMPLES = 3  # Vintage-Packs sind selten, mit 4 kam nie genug fuer einen Median zusammen
 MIN_MEDIAN = 8.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
@@ -122,7 +122,13 @@ EXCLUDE_PACK = re.compile(
     r"portfolio|album|magnet|puzzle|sticker\s*sheet|"
     # Promo-/Sonderausgaben (z.B. KFC-Tie-in) sind ein anderes Produkt als der Standard-
     # Retail-Booster und verzerren den Vergleichspreis ebenso.
-    r"\bpromo\b|\bkfc\b)\b"
+    r"\bpromo\b|\bkfc\b|"
+    # Professionell begutachtete/gegradete Packungen (CGC/BGS/PSA/AGS Pack Grading) kosten ein
+    # Vielfaches einer rohen Packung - im selben Medianpool verzerren sie den Vergleichspreis
+    # komplett, sodass echte Deals bei rohen (v.a. Vintage-)Packs nie unter die Schwelle fallen
+    # (Bug gefunden 2026-09-26: 100+ Vintage-Angebote pro Set, aber null Deals). Diese Bot-
+    # Ausgabe ist fuer rohe Packs gedacht, gegradete sind ein eigener Nischenmarkt.
+    r"\b(cgc|bgs|psa|ags)\s*-?\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6|5\.5|5)\b|graded|authenticated|slab)\b"
     r"|\b\d{1,3}\s*/\s*\d{1,3}\b",  # Kartennummer wie "200/197" -> Einzelkarten-Listing, kein Pack
     re.I,
 )
@@ -155,6 +161,8 @@ def is_japanese_listing(t):
     if re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b", t, re.I):
         return True
     return False
+
+
 
 
 def parse_chf(s):
