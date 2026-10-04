@@ -48,8 +48,8 @@ RESET = "--reset" in sys.argv
 # schon die Wertklasse bestimmt und im Vergleichsschluessel exakt getrennt wird.
 MIN_TOTAL = 20.0
 MAX_TOTAL = 3000.0
-DEAL_RATIO = 0.65       # Preis <= 65 % der Referenz gleiche Karte/Set/Edition/Sprache/EXAKTER Grade
-MIN_SAMPLES = 5         # Vergleichsangebote OHNE das Angebot selbst (3 war zu duenn: ein Ausreisser-Preis wurde zum "Median")
+DEAL_RATIO = 0.80       # nur Vorfilter gegen Angebotspreise; die eigentliche Pruefung ist SOLD_RATIO gegen echte Verkaeufe
+MIN_SAMPLES = 3         # Vorfilter; echte Pruefung: SOLD_MIN verkaufte Vergleiche
 MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
@@ -351,6 +351,64 @@ def find_deals(cards, history):
     return deals
 
 
+SOLD_RATIO = 0.80       # Preis muss <= 80 % des mittleren VERKAUFSPREISES (eBay "Verkaufte Artikel") liegen
+SOLD_MIN = 3            # mind. so viele verkaufte Vergleichsangebote (gleiche Karte/Set/Edition/Sprache/Grade)
+
+
+def sold_reference(page, d):
+    """Echter Marktwert: Median der zuletzt VERKAUFTEN eBay.ch-Angebote derselben Karte/Edition/
+    Sprache/Grade. Angebotspreise (Sofort-Kaufen) sind nur Wunschpreise der Verkaeufer und
+    liegen oft weit ueber dem, was tatsaechlich bezahlt wird (Bug 2026-10-04: Lugia PSA 8 JP
+    Angebots-Median CHF 729 vs. verkauft ca. CHF 365)."""
+    num = d["grade"].split()[-1]
+    q = f"pokemon {d['name']} {d['set']} psa {num}" + (" japanese" if d["lang"] == "JP" else "")
+    url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
+           "&_sacat=183454&LH_Sold=1&LH_Complete=1&_sop=13&_ipg=120")
+    rows = []
+    for attempt in range(3):
+        try:
+            page.goto(url, timeout=60000, wait_until="domcontentloaded")
+            page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
+            rows = page.evaluate(EXTRACT_JS)
+        except Exception as e:
+            log(f"Sold-Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
+        if rows:
+            break
+        time.sleep(3)
+    sold = [c["total"] for c in classify({r["id"]: r for r in rows}) if c["key"] == d["key"]]
+    if len(sold) < SOLD_MIN:
+        return None, len(sold)
+    return statistics.median(sold), len(sold)
+
+
+def verify_with_sold(deals):
+    if not deals:
+        return deals
+    launch_args = ["--window-size=1280,900"]
+    if os.name == "nt":
+        launch_args.insert(0, "--window-position=-2400,-2400")
+    out = []
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False, args=launch_args)
+        page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
+        cache = {}
+        for d in deals:
+            if d["key"] not in cache:
+                cache[d["key"]] = sold_reference(page, d)
+                time.sleep(1.0)
+            med, n = cache[d["key"]]
+            if med is None:
+                log(f"  verworfen (nur {n} verkaufte Vergleiche): {d['key']} | {d['title'][:60]}")
+                continue
+            if d["total"] <= SOLD_RATIO * med:
+                out.append(dict(d, median=round(med, 2), n=n, ratio=round(d["total"] / med, 2)))
+            else:
+                log(f"  verworfen (CHF {d['total']:.2f} nicht unter 80 % von verkauft-Median {med:.2f}, n={n}): {d['key']}")
+        browser.close()
+    out.sort(key=lambda d: (0 if d["is_jp"] else 1, d["ratio"]))
+    return out
+
+
 def update_history(history, cards):
     """Traegt die aktuell klassifizierten Angebote in die Preishistorie ein (pro Set+Karte+
     Sprache+Grade, dedupliziert nach Angebots-ID) und entfernt Eintraege, die seit
@@ -397,7 +455,7 @@ def post_discord(webhook, deals):
         desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f})\n"
                 f"Karte: **{d['name']}** - {d['set']} ({d['lang']}, {d['edition']}) - Grade: **{d['grade']}**\n"
                 f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
-                f"**{pct} % unter Median** (Median CHF {d['median']:.2f} aus {d['n']} Angeboten/Historie)\n"
+                f"**{pct} % unter Verkaufspreis** (Median der letzten {d['n']} VERKAEUFE CHF {d['median']:.2f}, eBay)\n"
                 f"[Zum Angebot]({d['url']})")
         color = 0x2ECC71 if pct >= 40 else 0xF1C40F
         embeds.append({
@@ -452,6 +510,7 @@ def main():
         # der aktuelle Lauf selbst in die Historie eingetragen, sonst wuerden die eigenen
         # Live-Angebote doppelt gezaehlt.
         deals = find_deals(cards, st["history"])
+        deals = verify_with_sold(deals)
         log(f"{len(items)} Angebote geladen, {len(cards)} PSA-klassifiziert, {len(deals)} Deals gesamt")
         new = [d for d in deals if d["id"] not in st["seen"]][:MAX_POSTS_PER_RUN]
         for d in deals[:25]:
