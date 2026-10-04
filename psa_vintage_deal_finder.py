@@ -48,7 +48,7 @@ RESET = "--reset" in sys.argv
 # schon die Wertklasse bestimmt und im Vergleichsschluessel exakt getrennt wird.
 MIN_TOTAL = 20.0
 MAX_TOTAL = 3000.0
-DEAL_RATIO = 0.80       # nur Vorfilter gegen Angebotspreise; die eigentliche Pruefung ist SOLD_RATIO gegen echte Verkaeufe
+DEAL_RATIO = 0.70       # nur Vorfilter gegen Angebotspreise; die eigentliche Pruefung ist SOLD_RATIO gegen echte Verkaeufe
 MIN_SAMPLES = 3         # Vorfilter; echte Pruefung: SOLD_MIN verkaufte Vergleiche
 MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
@@ -352,6 +352,8 @@ def find_deals(cards, history):
 
 
 SOLD_RATIO = 0.80       # Preis muss <= 80 % des mittleren VERKAUFSPREISES (eBay "Verkaufte Artikel") liegen
+VERIFY_MAX = 30         # max. so viele Kandidaten (beste Ratio zuerst) pro Lauf gegen Verkaeufe pruefen
+VERIFY_BUDGET_S = 540   # Zeitbudget fuer die Verkauft-Suchen pro Lauf
 SOLD_MIN = 3            # mind. so viele verkaufte Vergleichsangebote (gleiche Karte/Set/Edition/Sprache/Grade)
 
 
@@ -365,9 +367,9 @@ def sold_reference(page, d):
     url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
            "&_sacat=183454&LH_Sold=1&LH_Complete=1&_sop=13&_ipg=120")
     rows = []
-    for attempt in range(3):
+    for attempt in range(2):
         try:
-            page.goto(url, timeout=60000, wait_until="domcontentloaded")
+            page.goto(url, timeout=40000, wait_until="domcontentloaded")
             page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
             rows = page.evaluate(EXTRACT_JS)
         except Exception as e:
@@ -388,11 +390,16 @@ def verify_with_sold(deals):
     if os.name == "nt":
         launch_args.insert(0, "--window-position=-2400,-2400")
     out = []
+    deals = sorted(deals, key=lambda d: d["ratio"])[:VERIFY_MAX]
+    t0 = time.time()
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, args=launch_args)
         page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
         cache = {}
         for d in deals:
+            if time.time() - t0 > VERIFY_BUDGET_S:
+                log("  Zeitbudget fuer Verkaufspreis-Pruefung aufgebraucht, Rest im naechsten Lauf")
+                break
             if d["key"] not in cache:
                 cache[d["key"]] = sold_reference(page, d)
                 time.sleep(1.0)
