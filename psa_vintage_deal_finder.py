@@ -48,8 +48,8 @@ RESET = "--reset" in sys.argv
 # schon die Wertklasse bestimmt und im Vergleichsschluessel exakt getrennt wird.
 MIN_TOTAL = 20.0
 MAX_TOTAL = 3000.0
-DEAL_RATIO = 0.72       # Preis <= 72 % des Medians gleiche Karte/Set/Sprache/EXAKTER Grade
-MIN_SAMPLES = 3         # wie beim Booster-Finder: einzelne Grades sind selten, 4 war zu strikt
+DEAL_RATIO = 0.65       # Preis <= 65 % der Referenz gleiche Karte/Set/Edition/Sprache/EXAKTER Grade
+MIN_SAMPLES = 5         # Vergleichsangebote OHNE das Angebot selbst (3 war zu duenn: ein Ausreisser-Preis wurde zum "Median")
 MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
@@ -176,6 +176,26 @@ def detect_psa_grade(t):
     return f"PSA {m.group(1)}"
 
 
+def detect_edition(t):
+    if re.search(r"1st\s*ed|first\s*edition|(?<![0-9a-z])1st(?![0-9a-z])", t, re.I):
+        return "1st Ed"
+    if re.search(r"shadowless", t, re.I):
+        return "Shadowless"
+    return "Unlimited"
+
+
+def reference_price(vals):
+    """Robuster Referenzpreis: Median, nach Entfernen von Ausreissern (>2.5x oder <0.4x des
+    Roh-Medians) nochmals Median. Gibt None zurueck, wenn danach zu wenig Angebote uebrig sind."""
+    if len(vals) < MIN_SAMPLES:
+        return None, 0
+    raw = statistics.median(vals)
+    kept = [v for v in vals if 0.4 * raw <= v <= 2.5 * raw]
+    if len(kept) < MIN_SAMPLES:
+        return None, len(kept)
+    return statistics.median(kept), len(kept)
+
+
 def is_japanese(t):
     return bool(re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b|old back|no rarity|vending|carddass", t, re.I))
 
@@ -291,11 +311,12 @@ def classify(items):
         if not name or not sset:
             continue
         lang = "JP" if is_japanese(t) else "EN"
-        key = f"{lang}|{sset}|{name}|{grade}"
+        edition = detect_edition(t)
+        key = f"{lang}|{sset}|{edition}|{name}|{grade}"
         img = r["img"] or ""
         img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", img)
         out.append(dict(id=r["id"], title=t, price=price, ship=ship, total=total, name=name, set=sset, grade=grade,
-                        lang=lang, key=key, img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
+                        lang=lang, edition=edition, key=key, img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
                         query=r.get("query", ""), country=r.get("country", "") or "unbekannt", is_jp=is_jp))
     return out
 
@@ -313,14 +334,17 @@ def find_deals(cards, history):
         by_key[key] = by_key[key] + vals
     deals = []
     for c in cards:
-        vals = by_key[c["key"]]
-        if len(vals) < MIN_SAMPLES:
+        # Referenz ohne das Angebot selbst (sonst zieht der eigene Preis den Median nach unten)
+        others = list(by_key[c["key"]])
+        if c["total"] in others:
+            others.remove(c["total"])
+        med, n = reference_price(others)
+        if med is None:
             continue
-        med = statistics.median(vals)
         if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL) or med < MIN_MEDIAN:
             continue
         if c["total"] <= DEAL_RATIO * med:
-            c = dict(c, median=round(med, 2), n=len(vals), ratio=round(c["total"] / med, 2))
+            c = dict(c, median=round(med, 2), n=n, ratio=round(c["total"] / med, 2))
             deals.append(c)
     # Japan-Verkaeufer sind Top-Praeferenz -> nach vorne ziehen, danach nach Deal-Faktor sortieren.
     deals.sort(key=lambda d: (0 if d["is_jp"] else 1, d["ratio"]))
@@ -371,7 +395,7 @@ def post_discord(webhook, deals):
         pct = int(round((1 - d["ratio"]) * 100))
         flag = "\U0001F1EF\U0001F1F5 " if d.get("is_jp") else ""
         desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f})\n"
-                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}) - Grade: **{d['grade']}**\n"
+                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}, {d['edition']}) - Grade: **{d['grade']}**\n"
                 f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
                 f"**{pct} % unter Median** (Median CHF {d['median']:.2f} aus {d['n']} Angeboten/Historie)\n"
                 f"[Zum Angebot]({d['url']})")
