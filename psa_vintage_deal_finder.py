@@ -306,6 +306,10 @@ def classify(items):
         grade = detect_psa_grade(full_text)
         if not grade:
             continue
+        # Titel und eBay-"Artikelzustand" muessen denselben PSA-Grade nennen (Bug 2026-10-06: Titel
+        # "PSA 9", Artikelzustand "Graded - PSA 8").
+        if len({g for g in PSA_GRADE.findall(full_text)}) > 1:
+            continue
         price = parse_chf(r["p"])
         if price is None:
             continue
