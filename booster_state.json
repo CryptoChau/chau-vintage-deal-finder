@@ -213,28 +213,28 @@
 },
 "EN|Journey Together": {
 "ebay:168574017599": {
-"total": 21.94,
-"last_seen": "2026-10-05"
+"total": 21.95,
+"last_seen": "2026-10-06"
 },
 "ebay:178251158141": {
 "total": 6.04,
-"last_seen": "2026-10-05"
+"last_seen": "2026-10-06"
 },
 "ebay:178251133067": {
-"total": 7.68,
-"last_seen": "2026-10-05"
+"total": 7.69,
+"last_seen": "2026-10-06"
 },
 "ebay:318321541143": {
-"total": 9.03,
-"last_seen": "2026-10-05"
+"total": 9.07,
+"last_seen": "2026-10-06"
 },
 "ebay:147239660043": {
-"total": 11.86,
-"last_seen": "2026-10-05"
+"total": 11.87,
+"last_seen": "2026-10-06"
 },
 "ebay:286954485646": {
-"total": 7.48,
-"last_seen": "2026-10-05"
+"total": 7.51,
+"last_seen": "2026-10-06"
 },
 "ricardo:1329984320": {
 "total": 15.0,
@@ -242,6 +242,10 @@
 },
 "ricardo:1285526192": {
 "total": 14.0,
+"last_seen": "2026-10-06"
+},
+"ebay:800671121923": {
+"total": 8.3,
 "last_seen": "2026-10-06"
 }
 },
@@ -370,6 +374,12 @@
 "JP|Evolving Skies": {
 "ebay:157770780827": {
 "total": 25.03,
+"last_seen": "2026-10-06"
+}
+},
+"EN|Team Rocket": {
+"ebay:287195472630": {
+"total": 4.1,
 "last_seen": "2026-10-06"
 }
 }
