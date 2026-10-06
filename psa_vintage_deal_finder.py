@@ -315,6 +315,11 @@ def classify(items):
             continue
         is_jp = is_japan_origin(r.get("country", ""))
         ship = parse_shipping(r["s"])
+        # Fehlt der Versandpreis in der Trefferliste (v.a. Auslandsverkaeufer mit "eBay International
+        # Shipping"), wuerde der Gesamtpreis zu niedrig ausfallen (Fehlalarm 2026-10-06) -> Pauschale.
+        ship_est = not re.search(r"CHF|kostenlos|gratis|free", r["s"] or "", re.I)
+        if ship_est:
+            ship = 8.0 if (r.get("country") or "").strip().lower() == "schweiz" else 25.0
         total = round(price + ship, 2)
         name = detect_name(t)
         sset = detect_set(t)
@@ -326,7 +331,7 @@ def classify(items):
         key = f"{lang}|{sset}|{edition}|{variant}|{name}|{grade}"
         img = r["img"] or ""
         img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", img)
-        out.append(dict(id=r["id"], title=t, price=price, ship=ship, total=total, name=name, set=sset, grade=grade,
+        out.append(dict(id=r["id"], title=t, price=price, ship=ship, ship_est=ship_est, total=total, name=name, set=sset, grade=grade,
                         lang=lang, edition=edition, key=key, img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
                         query=r.get("query", ""), country=r.get("country", "") or "unbekannt", is_jp=is_jp))
     return out
@@ -406,7 +411,7 @@ def post_discord(webhook, deals):
     for d in deals:
         pct = int(round((1 - d["ratio"]) * 100))
         flag = "\U0001F1EF\U0001F1F5 " if d.get("is_jp") else ""
-        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f})\n"
+        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f}{' GESCHAETZT' if d.get('ship_est') else ''})\n"
                 f"Karte: **{d['name']}** - {d['set']} ({d['lang']}, {d['edition']}) - Grade: **{d['grade']}**\n"
                 f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
                 f"**{pct} % unter den anderen Angeboten** (Median CHF {d['median']:.2f} der {d['n']} anderen aktuellen eBay-Angebote)\nIdee mit Potenzial, KEIN Marktwert: Angebotspreise sind Wunschpreise - bitte in Collectr (Sold/Graded) gegenpruefen.\n"
