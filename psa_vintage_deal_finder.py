@@ -48,8 +48,8 @@ RESET = "--reset" in sys.argv
 # schon die Wertklasse bestimmt und im Vergleichsschluessel exakt getrennt wird.
 MIN_TOTAL = 20.0
 MAX_TOTAL = 3000.0
-DEAL_RATIO = 0.65       # Idee/Kandidat: Preis <= 65 % des Medians der ANDEREN aktuellen Angebote (kein Marktwert!)
-MIN_SAMPLES = 5         # mind. so viele andere Vergleichsangebote (ohne das Angebot selbst)
+DEAL_RATIO = 0.70       # Idee/Kandidat: Preis <= 65 % des Medians der ANDEREN aktuellen Angebote (kein Marktwert!)
+MIN_SAMPLES = 4         # mind. so viele andere Vergleichsangebote (ohne das Angebot selbst)
 MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
