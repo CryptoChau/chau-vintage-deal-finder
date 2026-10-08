@@ -332,6 +332,10 @@ def evaluate(card, items, fx):
                 "schweiz", "switzerland", "suisse", "svizzera"):
             continue   # nur Verkaeufer aus der Schweiz (unbekannter Standort bleibt drin)
         lang = detect_lang(it["title"])
+        if card.get("allowed_graders") and is_graded(it["title"]):
+            gm = GRADE_RE.search(it["title"])
+            if not gm or gm.group(1).upper() not in [g.upper() for g in card["allowed_graders"]]:
+                continue   # gegradet, aber nicht von einer erlaubten Firma (z.B. ARS/CGC)
         if lang not in card.get("langs", ["EN", "JP"]):
             continue
         total, duty, foreign = landed_chf(it["price"], it["ship"], it["cur"], it["country"], fx)
