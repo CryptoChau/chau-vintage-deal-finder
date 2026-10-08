@@ -11,6 +11,14 @@ on:
         description: "Nur testen (kein Discord-Post, kein State-Commit)"
         type: boolean
         default: false
+      only_cards:
+        description: "Nur diese Karten-IDs (kommagetrennt), leer = alle"
+        type: string
+        default: ""
+      diag:
+        description: "Diagnose fuer diese Karten-IDs (kommagetrennt): lose Treffer + Ablehnungsgrund"
+        type: string
+        default: ""
 
 concurrency:
   group: wantlist-finder
@@ -41,6 +49,8 @@ jobs:
         env:
           DISCORD_WEBHOOK_WANTLIST: ${{ secrets.DISCORD_WEBHOOK_WANTLIST }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          WANTLIST_ONLY: ${{ inputs.only_cards }}
+          WANTLIST_DIAG: ${{ inputs.diag }}
         run: |
           ARGS=""
           if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi

@@ -375,6 +375,45 @@ def post_discord(webhook, deals):
         time.sleep(1.5)
 
 
+def diagnose(card, items, fx):
+    """Gibt alle LOSE passenden Angebote mit Ablehnungsgrund aus (WANTLIST_DIAG=<card id>)."""
+    loose = re.compile(card["match"], re.I)
+    rows = []
+    for it in items.values():
+        if not loose.search(it["title"]):
+            continue
+        t = it["title"]
+        why = []
+        excl = EXCLUDE_SEALED if card.get("sealed") else (EXCLUDE_LOT if card.get("lot") else EXCLUDE)
+        m = excl.search(t)
+        if m:
+            why.append(f"excl:{m.group(0)}")
+        if card.get("require") and not re.search(card["require"], t, re.I):
+            why.append("require")
+        m = card.get("reject") and re.search(card["reject"], t, re.I)
+        if m:
+            why.append(f"reject:{m.group(0)}")
+        nums, words = card.get("number", []), card.get("number_words", [])
+        if (nums or words) and not (any(n.lower() in t.lower() for n in nums) or any(w.lower() in t.lower() for w in words)):
+            why.append("number")
+        total, duty, foreign = landed_chf(it["price"], it["ship"], it["cur"], it["country"], fx)
+        qty = parse_qty(t)
+        ref = card["ref_eur"] * fx["EUR"] if card.get("ref_eur") else None
+        pp = total / qty
+        if card.get("lot") and qty < card.get("min_qty", 2):
+            why.append(f"qty{qty}")
+        if card.get("swiss_only") and it["country"] and it["country"].lower() not in ("schweiz", "switzerland", "suisse", "svizzera"):
+            why.append(f"land:{it['country']}")
+        if ref and pp / ref > card.get("post_up_to_ratio", 1.15):
+            why.append(f"ratio{pp / ref:.2f}")
+        if card.get("min_chf") and total < card["min_chf"]:
+            why.append("min_chf")
+        rows.append((total, f"DIAG CHF {total:7.2f} q{qty} [{it['source']}|{it['country'][:12]}] {','.join(why) or 'OK'} | {t[:85]} | {it['url']}"))
+    for _, line in sorted(rows)[:60]:
+        log(line)
+    log(f"DIAG {card['id']}: {len(rows)} lose Treffer")
+
+
 def load_state():
     if RESET or not os.path.exists(STATE_FILE):
         return {"seen": {}}
@@ -419,13 +458,20 @@ def main():
             browser = p.chromium.launch(headless=False, args=launch_args)
             ctx = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900})
             page = ctx.new_page()
+            only = os.environ.get("WANTLIST_ONLY", "").strip()
+            diag_id = os.environ.get("WANTLIST_DIAG", "").strip()
             for card in cards:
+                if only and card["id"] not in only.split(","):
+                    continue
                 log(f"=== {card['name']} ===")
+                fc = dict(card, sources=None) if (diag_id and card["id"] in diag_id.split(",")) else card  # Diagnose: alle Maerkte
                 items = {}
-                items.update(fetch_ebay(page, card))
-                if not card.get("sources") or "Ricardo.ch" in card["sources"]:
-                    items.update(fetch_ricardo(browser, card))
+                items.update(fetch_ebay(page, fc))
+                if not fc.get("sources") or "Ricardo.ch" in fc["sources"]:
+                    items.update(fetch_ricardo(browser, fc))
                 res = evaluate(card, items, fx)
+                if diag_id and card["id"] in diag_id.split(","):
+                    diagnose(card, items, fx)
                 log(f"{len(items)} Angebote geladen, {len(res)} passend")
                 for r in res[:15]:
                     flag = "NEU " if r["id"] not in st["seen"] else "    "
