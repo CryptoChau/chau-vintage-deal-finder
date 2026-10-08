@@ -151,6 +151,8 @@ def detect_condition(t):
 def detect_lang(t):
     if re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b|日本", t, re.I):
         return "JP"
+    if re.search(r"portug|spanish|espa[nñ]ol|french|fran[cç]ais|franz[oö]sisch|italian|italiano|korea|chinese|chinesisch", t, re.I):
+        return "XX"
     return "EN"
 
 
@@ -338,6 +340,8 @@ def evaluate(card, items, fx):
         results.append(dict(it, total=total, duty=duty, foreign=foreign, lang=lang,
                             condition=detect_condition(it["title"]), ref_chf=ref_chf, ratio=ratio, img=img,
                             qty=qty, per_piece=round(per_piece, 2),
+                            num_note=bool(card.get("number_hint")) and not any(n.lower() in it["title"].lower() for n in card["number_hint"]),
+                            num_hint=(card.get("number_hint") or [""])[0],
                             card_id=card["id"], card_name=card["name"], cardmarket=card.get("cardmarket", "")))
     results.sort(key=lambda r: r["total"])
     return results
@@ -353,6 +357,8 @@ def post_discord(webhook, deals):
                      + (f" + Einfuhr ca. CHF {d['duty']:.2f}" if d["duty"] else ""))
         parts.append(f"Karte: **{d['card_name']}** - Sprache: {d['lang']} - Zustand: **{d['condition']}** - Quelle: **{d['source']}**"
                      + (f" - aus {d['country']}" if d["country"] else ""))
+        if d.get("num_note"):
+            parts.insert(1, f"Hinweis: Nr. {d['num_hint']} steht nicht im Titel - Inhalt des Lots vor dem Kauf pruefen")
         if d.get("qty", 1) > 1:
             parts.insert(1, f"**{d['qty']} Stueck -> CHF {d['per_piece']:.2f} pro Stueck** (Stueckzahl aus dem Titel, bitte pruefen)")
         if d["ref_chf"]:

@@ -62,7 +62,17 @@
       ],
       "match": "pikachu",
       "number_words": [],
-      "number": [
+      "number": [],
+      "min_qty": 4,
+      "ref_eur": 1.55,
+      "post_up_to_ratio": 3.0,
+      "langs": [
+        "EN",
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/30th-Celebration/Pikachu-30C040",
+      "reject": "full\\s*set|komplett|complete|compleet|master\\s*set|set\\s*#?\\s*1\\b|\\b0?\\d{1,2}\\s*[-–]\\s*0?\\d{2,3}\\b|chinese|chinesisch|simplified|s-chinese|korea|koreanisch|different|verschiedene|random|zufall|mystery",
+      "number_hint": [
         "040",
         "30c 040",
         "30c040",
@@ -70,15 +80,8 @@
         "no. 40",
         "nr. 40"
       ],
-      "min_qty": 4,
-      "ref_eur": 1.55,
-      "post_up_to_ratio": 1.5,
-      "langs": [
-        "EN",
-        "JP"
-      ],
-      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/30th-Celebration/Pikachu-30C040",
-      "reject": "full\\s*set|komplett|complete|compleet|master\\s*set|set\\s*#?\\s*1\\b|\\b0?\\d{1,2}\\s*[-–]\\s*0?\\d{2,3}\\b|chinese|chinesisch|simplified|s-chinese|korea|koreanisch|different|verschiedene|random|zufall|mystery"
+      "require": "30th|30 jahre|30c|30 years|celebration|anniversary|jubil",
+      "other_number_regex": "\\b0?(?:2[3-9]|3\\d|4[1-9]|5[0-2])\\b\\D+\\b0?(?:2[3-9]|3\\d|4[1-9]|5[0-2])\\b"
     },
     {
       "id": "me02-phantasmal-flames-display",
@@ -94,17 +97,12 @@
       "reject": "\\b(1|one|single)\\s*(booster\\s*)?pack\\b|bundle|\\betb\\b|elite|\\btin\\b|blister|build\\s*&?\\s*battle|\\bpsa\\b|\\bcgc\\b|japan|japanisch|jpn|korea|chinese|chinesisch|inferno|mini|sleeved|half\\s*box",
       "min_chf": 150,
       "ref_eur": 304.59,
-      "post_up_to_ratio": 1.1,
+      "post_up_to_ratio": 1.5,
       "langs": [
-        "EN",
-        "JP"
+        "EN"
       ],
       "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Phantasmal-Flames-Booster-Box",
-      "sources": [
-        "eBay.ch",
-        "Ricardo.ch"
-      ],
-      "swiss_only": true
+      "swiss_only": false
     }
   ]
 }
