@@ -115,7 +115,7 @@
       ],
       "match": "mewtwo|ミュウツー",
       "require": "striking\\s*back|gyakush|10th\\s*movie|movie\\s*commemoration|逆襲",
-      "reject": "\\b(25th|151|vstar|vmax|gx|tag\\s*team)\\b|\\bex\\b",
+      "reject": "\\b(25th|151|vstar|vmax|gx|tag\\s*team)\\b|premium\\s*sheet|topps|armored|evolution|bromide|phone\\s*card",
       "min_chf": 30,
       "max_chf": 800,
       "langs": [
