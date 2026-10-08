@@ -497,6 +497,9 @@ def main():
                 for r in res[:15]:
                     flag = "NEU " if r["id"] not in st["seen"] else "    "
                     log(f"  {flag}CHF {r['total']:.2f} ({r['condition']}, {r['lang']}) [{r['source']}] {r['title'][:70]} | {r['url']}")
+                if card.get("grade_split"):
+                    for r in [x for x in res if is_graded(x["title"])][:25]:
+                        log(f"  GRADED {'bereits gepostet' if r['id'] in st['seen'] else 'NEU'} CHF {r['total']:.2f} ({r['condition']}) [{r['source']}] {r['title'][:75]} | {r['url']}")
                 fresh = [r for r in res if r["id"] not in st["seen"]]
                 if card.get("grade_split"):
                     graded = [r for r in fresh if is_graded(r["title"])][:MAX_POSTS_PER_CARD]
