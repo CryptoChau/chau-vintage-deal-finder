@@ -130,7 +130,7 @@
     },
     {
       "id": "neo-destiny-dark-espeon-holo-psa",
-      "name": "Dark Espeon Holo (Neo Destiny, No. 196) - PSA",
+      "name": "Dark Espeon Holo No. 196 (Neo 4 / Neo Destiny JP) - PSA",
       "queries": [
         "dark espeon holo neo destiny psa",
         "dark espeon neo destiny psa 9",
@@ -139,8 +139,8 @@
         "dunkles espeon holo neo destiny psa"
       ],
       "match": "dark\\s*espeon|dunkles\\s*espeon|dark\\s*umbreon\\s*&\\s*espeon|ブラッキー|やみのエーフィ|闇のエーフィ|\\bdark\\s*eevee",
-      "require": "neo|destiny|\\b196\\b|holo",
-      "reject": "\\b(umbreon|2025|2024|vstar|vmax|ex\\b)\\b|proxy|custom|reprint|replica",
+      "require": "\\b196\\b|neo\\s*4|darkness|japan|\\bjp\\b",
+      "reject": "\\b(umbreon|2025|2024|vstar|vmax)\\b|4\\s*/\\s*105|proxy|custom|reprint|replica",
       "graded_only": true,
       "allowed_graders": [
         "PSA"
