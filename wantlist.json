@@ -49,6 +49,38 @@
         "JP"
       ],
       "max_chf": 400
+    },
+    {
+      "id": "30c-040-pikachu-lot",
+      "name": "Pikachu 30C 040 (30th Celebration) - mehrere Stueck",
+      "lot": true,
+      "queries": [
+        "pikachu 30th celebration 040 lot",
+        "pikachu 30th celebration playset",
+        "pikachu 30c 040 x10",
+        "pikachu 30 jahre 040 lot"
+      ],
+      "match": "pikachu",
+      "number_words": [
+        "30th celebration",
+        "30 jahre",
+        "30c",
+        "30th anniversary",
+        "30 years"
+      ],
+      "number": [
+        "040",
+        "30c 040",
+        "30c040"
+      ],
+      "min_qty": 4,
+      "ref_eur": 1.55,
+      "post_up_to_ratio": 1.5,
+      "langs": [
+        "EN",
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/30th-Celebration/Pikachu-30C040"
     }
   ]
 }

@@ -54,13 +54,15 @@ FX_FALLBACK = {"CHF": 1.0, "EUR": 0.93, "USD": 0.80, "JPY": 0.0053}   # CHF je 1
 
 _EXCL_COMMON = (
     r"proxy|custom|fake|replica|orica|repro|reprint|digital|code|codes|tcg\s*live|"
-    r"lot|bulk|konvolut|sammlung|sticker|magnet|poster|puzzle|plush|"
+    r"sticker|magnet|poster|puzzle|plush|"
     r"sleeve|binder|playmat|extended\s*art|altered|art\s*card|"
     r"f(ü|u|ue)r\s*(psa|cgc|bgs)|for\s*(psa|cgc|bgs)|toploader|ultra\s*pro"
 )
+_LOT_WORDS = r"lot|bulk|konvolut|sammlung"
+EXCLUDE_LOT = re.compile(r"\b(" + _EXCL_COMMON + r"|booster|display|case|empty)\b", re.I)
 # Einzelkarten: Sealed-Begriffe ausschliessen. Sealed-Karten ("sealed": true): erlaubt.
-EXCLUDE = re.compile(r"\b(" + _EXCL_COMMON + r"|bundle|collection|booster|display|case)\b", re.I)
-EXCLUDE_SEALED = re.compile(r"\b(" + _EXCL_COMMON + r"|empty|leer|opened|geöffnet|geoeffnet|open\s*box|resealed|"
+EXCLUDE = re.compile(r"\b(" + _EXCL_COMMON + r"|" + _LOT_WORDS + r"|bundle|collection|booster|display|case)\b", re.I)
+EXCLUDE_SEALED = re.compile(r"\b(" + _EXCL_COMMON + r"|" + _LOT_WORDS + r"|empty|leer|opened|geöffnet|geoeffnet|open\s*box|resealed|"
                             r"single\s*cards?|einzelkarte|pack\s*only|nur\s*pack|ohne\s*(box|display)|"
                             r"without\s*box|(1|one|einzel)\s*(booster\s*)?pack)\b", re.I)
 
@@ -271,9 +273,22 @@ def fetch_ricardo(browser, card):
     return out
 
 
+def parse_qty(t):
+    """Stueckzahl aus Titel ('10x', 'x10', '25 Stk', 'Playset', '4er Set'); 1 wenn keine Angabe."""
+    m = re.search(r"\b(\d{1,3})\s*[x×]\b|\b[x×]\s*(\d{1,3})\b|\b(\d{1,3})\s*(?:stk|stück|stueck|pcs|pieces|cards|karten|st\.)|\b(\d{1,3})er\s*(?:set|pack|lot)|\b(?:lot|set|bundle)\s*(?:of|von)\s*(\d{1,3})\b", t, re.I)
+    if m:
+        for g in m.groups():
+            if g:
+                return int(g)
+    if re.search(r"play\s*-?set", t, re.I):
+        return 4
+    return 1
+
+
 def matches_card(card, title):
     t = title
-    if (EXCLUDE_SEALED if card.get("sealed") else EXCLUDE).search(t):
+    excl = EXCLUDE_SEALED if card.get("sealed") else (EXCLUDE_LOT if card.get("lot") else EXCLUDE)
+    if excl.search(t):
         return False
     if not re.search(card["match"], t, re.I):
         return False
@@ -303,16 +318,21 @@ def evaluate(card, items, fx):
         if lang not in card.get("langs", ["EN", "JP"]):
             continue
         total, duty, foreign = landed_chf(it["price"], it["ship"], it["cur"], it["country"], fx)
+        qty = parse_qty(it["title"]) if card.get("lot") else 1
+        if card.get("lot") and qty < card.get("min_qty", 2):
+            continue
+        per_piece = total / qty
         if total < card.get("min_chf", 0):
             continue
         if card.get("max_chf") and total > card["max_chf"]:
             continue
-        ratio = total / ref_chf if ref_chf else None
+        ratio = per_piece / ref_chf if ref_chf else None
         if ratio is not None and ratio > card.get("post_up_to_ratio", 1.15):
             continue
         img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", it["img"] or "")
         results.append(dict(it, total=total, duty=duty, foreign=foreign, lang=lang,
                             condition=detect_condition(it["title"]), ref_chf=ref_chf, ratio=ratio, img=img,
+                            qty=qty, per_piece=round(per_piece, 2),
                             card_id=card["id"], card_name=card["name"], cardmarket=card.get("cardmarket", "")))
     results.sort(key=lambda r: r["total"])
     return results
@@ -328,10 +348,12 @@ def post_discord(webhook, deals):
                      + (f" + Einfuhr ca. CHF {d['duty']:.2f}" if d["duty"] else ""))
         parts.append(f"Karte: **{d['card_name']}** - Sprache: {d['lang']} - Zustand: **{d['condition']}** - Quelle: **{d['source']}**"
                      + (f" - aus {d['country']}" if d["country"] else ""))
+        if d.get("qty", 1) > 1:
+            parts.insert(1, f"**{d['qty']} Stueck -> CHF {d['per_piece']:.2f} pro Stueck** (Stueckzahl aus dem Titel, bitte pruefen)")
         if d["ref_chf"]:
-            diff = int(round((d["total"] / d["ref_chf"] - 1) * 100))
+            diff = int(round((d["per_piece"] / d["ref_chf"] - 1) * 100))
             word = "ueber" if diff > 0 else "unter"
-            parts.append(f"Cardmarket-Trend ca. CHF {d['ref_chf']:.2f} -> dieses Angebot **{abs(diff)} % {word} Trend**")
+            parts.append(f"Cardmarket-Trend ca. CHF {d['ref_chf']:.2f} -> dieses Angebot (pro Stueck) **{abs(diff)} % {word} Trend**")
         parts.append(f"[Zum Angebot]({d['url']})" + (f" - [Cardmarket]({d['cardmarket']})" if d["cardmarket"] else ""))
         color = 0x2ECC71 if d["ratio"] and d["ratio"] <= 0.9 else (0xF1C40F if d["ratio"] and d["ratio"] <= 1.0 else 0xE67E22)
         e = {"title": d["title"][:240], "url": d["url"], "description": "\n".join(parts), "color": color,
