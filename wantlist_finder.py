@@ -195,6 +195,8 @@ EBAY_SITES = [
 def fetch_ebay(page, card):
     out = {}
     for site, base in EBAY_SITES:
+        if card.get("sources") and site not in card["sources"]:
+            continue
         for q in card["queries"]:
             url = f"{base}?_nkw={urllib.parse.quote(q)}&_sacat=183454&LH_BIN=1&_sop=15&_ipg=120"
             rows = []
@@ -314,6 +316,9 @@ def evaluate(card, items, fx):
     for it in items.values():
         if not matches_card(card, it["title"]):
             continue
+        if card.get("swiss_only") and it["country"] and it["country"].lower() not in (
+                "schweiz", "switzerland", "suisse", "svizzera"):
+            continue   # nur Verkaeufer aus der Schweiz (unbekannter Standort bleibt drin)
         lang = detect_lang(it["title"])
         if lang not in card.get("langs", ["EN", "JP"]):
             continue
@@ -418,7 +423,8 @@ def main():
                 log(f"=== {card['name']} ===")
                 items = {}
                 items.update(fetch_ebay(page, card))
-                items.update(fetch_ricardo(browser, card))
+                if not card.get("sources") or "Ricardo.ch" in card["sources"]:
+                    items.update(fetch_ricardo(browser, card))
                 res = evaluate(card, items, fx)
                 log(f"{len(items)} Angebote geladen, {len(res)} passend")
                 for r in res[:15]:
