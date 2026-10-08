@@ -1,0 +1,35 @@
+{
+  "_hinweis": "Wunschliste fuer wantlist_finder.py. Neue Karten einfach als weiteren Eintrag anhaengen. Felder: id (eindeutig), name (Anzeige), queries (Suchbegriffe, EN/DE/JP), match (Regex, der im Angebotstitel vorkommen MUSS), number (Kartennummer-Varianten, mind. eine ODER Wort aus number_words muss im Titel stehen), other_number_regex (Treffer = falsche Version -> verworfen), min_chf (Untergrenze gesamt, filtert guenstigere Standardversion/Zubehoer), ref_eur (Cardmarket-Preis-Trend in EUR als Vergleich), post_up_to_ratio (nur Angebote bis dieses Vielfache des Trends posten), langs (EN/JP), cardmarket (Link).",
+  "cards": [
+    {
+      "id": "aor-092-m-tyranitar-ex",
+      "name": "M Tyranitar-EX (V2) AOR 92/98",
+      "queries": [
+        "M Tyranitar EX 92/98 pokemon",
+        "Mega Tyranitar EX Ancient Origins full art",
+        "M Despotar EX 92/98 Ewiger Anfang"
+      ],
+      "match": "(\\bm\\b|mega)[\\s\\-]*(tyranitar|despotar)[\\s\\-]*ex",
+      "number": [
+        "92/98",
+        "92 / 98",
+        "092/098"
+      ],
+      "number_words": [
+        "full art",
+        "fa ",
+        "ancient origins",
+        "ewiger anfang"
+      ],
+      "other_number_regex": "\\b(?!92\\b)\\d{1,3}\\s*/\\s*98\\b",
+      "min_chf": 30,
+      "ref_eur": 95.89,
+      "post_up_to_ratio": 1.15,
+      "langs": [
+        "EN",
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/Ancient-Origins/MTyranitar-EX-V2-AOR92"
+    }
+  ]
+}
