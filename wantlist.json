@@ -30,6 +30,24 @@
         "JP"
       ],
       "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/Ancient-Origins/MTyranitar-EX-V2-AOR92"
+    },
+    {
+      "id": "s11-lost-abyss-box-jp",
+      "name": "Pokémon S11 Lost Abyss (JP) Booster Box - Factory Sealed",
+      "sealed": true,
+      "queries": [
+        "pokemon lost abyss booster box sealed",
+        "pokemon s11 lost abyss box japanese",
+        "pokemon lost abyss booster box japanisch"
+      ],
+      "match": "lost\\s*abyss|\\bs11\\b|ロストアビス",
+      "require": "\\b(box|display|bb)\\b|30\\s*packs?",
+      "reject": "\\b(1|one|single)\\s*(booster\\s*)?pack\\b|\\bpack\\s*(only|x\\s*1)\\b|\\bpsa\\b|\\bcgc\\b|lost\\s*origin",
+      "min_chf": 70,
+      "langs": [
+        "EN",
+        "JP"
+      ]
     }
   ]
 }

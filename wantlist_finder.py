@@ -51,13 +51,17 @@ VAT_FREE_BELOW = 62.0
 CUSTOMS_HANDLING_FEE = 13.0
 FX_FALLBACK = {"CHF": 1.0, "EUR": 0.93, "USD": 0.80, "JPY": 0.0053}   # CHF je 1 Einheit
 
-EXCLUDE = re.compile(
-    r"\b(proxy|custom|fake|replica|orica|repro|reprint|digital|code\b|codes\b|tcg\s*live|"
-    r"lot\b|bundle|bulk|konvolut|sammlung|collection|sticker|magnet|poster|puzzle|plush|"
-    r"booster|display|sleeve|binder|playmat|case\b|extended\s*art|altered|art\s*card|"
-    r"f(ü|u|ue)r\s*(psa|cgc|bgs)|for\s*(psa|cgc|bgs)|toploader|ultra\s*pro)\b",
-    re.I,
+_EXCL_COMMON = (
+    r"proxy|custom|fake|replica|orica|repro|reprint|digital|code|codes|tcg\s*live|"
+    r"lot|bulk|konvolut|sammlung|sticker|magnet|poster|puzzle|plush|"
+    r"sleeve|binder|playmat|extended\s*art|altered|art\s*card|"
+    r"f(ü|u|ue)r\s*(psa|cgc|bgs)|for\s*(psa|cgc|bgs)|toploader|ultra\s*pro"
 )
+# Einzelkarten: Sealed-Begriffe ausschliessen. Sealed-Karten ("sealed": true): erlaubt.
+EXCLUDE = re.compile(r"\b(" + _EXCL_COMMON + r"|bundle|collection|booster|display|case)\b", re.I)
+EXCLUDE_SEALED = re.compile(r"\b(" + _EXCL_COMMON + r"|empty|leer|opened|geöffnet|geoeffnet|open\s*box|resealed|"
+                            r"single\s*cards?|einzelkarte|pack\s*only|nur\s*pack|ohne\s*(box|display)|"
+                            r"without\s*box|(1|one|einzel)\s*(booster\s*)?pack)\b", re.I)
 
 CONDITIONS = [
     (r"\b(gem\s*mint|psa\s*10|bgs\s*10|cgc\s*10)\b", "Gem Mint / Graded 10"),
@@ -268,9 +272,13 @@ def fetch_ricardo(browser, card):
 
 def matches_card(card, title):
     t = title
-    if EXCLUDE.search(t):
+    if (EXCLUDE_SEALED if card.get("sealed") else EXCLUDE).search(t):
         return False
     if not re.search(card["match"], t, re.I):
+        return False
+    if card.get("require") and not re.search(card["require"], t, re.I):
+        return False
+    if card.get("reject") and re.search(card["reject"], t, re.I):
         return False
     other = card.get("other_number_regex")
     if other and re.search(other, t):
