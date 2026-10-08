@@ -32,9 +32,10 @@ from datetime import datetime
 from playwright.sync_api import sync_playwright
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-STATE_FILE = os.path.join(HERE, "wantlist_state.json")
+STATE_NAME = os.environ.get("WANTLIST_STATE", "wantlist_state.json")   # je Job eigene Datei
+STATE_FILE = os.path.join(HERE, STATE_NAME)
 LOG_FILE = os.path.join(HERE, "wantlist_finder.log")
-LOCK_FILE = os.path.join(HERE, "wantlist_finder.lock")
+LOCK_FILE = os.path.join(HERE, "wantlist_finder_" + os.environ.get("WANTLIST_STATE", "wantlist_state.json").replace(".json", "") + ".lock")
 WANTLIST_FILE = os.path.join(HERE, "wantlist.json")
 
 DRY_RUN = "--dry-run" in sys.argv
@@ -442,14 +443,16 @@ def diagnose(card, items, fx):
 
 
 def load_state():
-    if RESET or not os.path.exists(STATE_FILE):
-        return {"seen": {}}
-    try:
-        st = json.load(open(STATE_FILE, encoding="utf-8"))
-        st.setdefault("seen", {})
-        return st
-    except Exception:
-        return {"seen": {}}
+    """Vereinigt 'seen' aller wantlist_state*.json (parallele Jobs schreiben je eine eigene Datei)."""
+    import glob
+    seen = {}
+    if not RESET:
+        for fn in glob.glob(os.path.join(HERE, "wantlist_state*.json")):
+            try:
+                seen.update(json.load(open(fn, encoding="utf-8")).get("seen", {}))
+            except Exception:
+                pass
+    return {"seen": seen}
 
 
 def acquire_lock():

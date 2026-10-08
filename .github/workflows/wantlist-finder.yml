@@ -2,6 +2,9 @@ name: CHAU Wunschlisten-Finder
 
 # Sucht Karten aus wantlist.json auf eBay.ch/.de/.com und Ricardo und postet neue Angebote
 # mit CHF-Gesamtpreis (inkl. geschaetzter Einfuhrabgaben) in Discord (#wunschliste-deals).
+# Die Karten werden automatisch auf parallele Jobs verteilt (je CARDS_PER_JOB Karten), damit
+# ein Lauf mit vielen Karten nicht das Zeitlimit reisst. Neue Karten in wantlist.json werden
+# automatisch einer Gruppe zugeordnet.
 on:
   schedule:
     - cron: "51 */2 * * *"
@@ -27,10 +30,44 @@ concurrency:
 permissions:
   contents: write
 
+env:
+  CARDS_PER_JOB: "2"
+
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Karten auf Jobs verteilen
+        id: plan
+        env:
+          ONLY_CARDS: ${{ inputs.only_cards }}
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          ids = [c["id"] for c in json.load(open("wantlist.json", encoding="utf-8"))["cards"]]
+          only = [x.strip() for x in os.environ.get("ONLY_CARDS", "").split(",") if x.strip()]
+          if only:
+              ids = [i for i in ids if i in only]
+          n = int(os.environ.get("CARDS_PER_JOB", "2"))
+          groups = [ids[i:i + n] for i in range(0, len(ids), n)] or [[]]
+          include = [{"idx": k, "ids": ",".join(g)} for k, g in enumerate(groups)]
+          print("matrix=" + json.dumps({"include": include}))
+          PY
+
   find:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
     steps:
       - uses: actions/checkout@v4
 
@@ -49,30 +86,36 @@ jobs:
         env:
           DISCORD_WEBHOOK_WANTLIST: ${{ secrets.DISCORD_WEBHOOK_WANTLIST }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
-          WANTLIST_ONLY: ${{ inputs.only_cards }}
+          WANTLIST_ONLY: ${{ matrix.ids }}
           WANTLIST_DIAG: ${{ inputs.diag }}
+          WANTLIST_STATE: wantlist_state_g${{ matrix.idx }}.json
         run: |
           ARGS=""
           if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi
+          if [ -z "$WANTLIST_ONLY" ]; then echo "Keine Karten in dieser Gruppe"; exit 0; fi
           xvfb-run -a --server-args="-screen 0 1280x900x24" python wantlist_finder.py $ARGS
 
-      - name: Persist wantlist_state.json
+      - name: Persist State (eigene Datei pro Gruppe)
+        env:
+          STATE: wantlist_state_g${{ matrix.idx }}.json
         run: |
           git config user.name "chau-deal-finder-bot"
           git config user.email "actions@users.noreply.github.com"
-          cp wantlist_state.json /tmp/state_fresh.json 2>/dev/null || true
-          git add wantlist_state.json 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "Update wantlist state [skip ci]"
-          for i in 1 2 3 4 5; do
+          [ -f "$STATE" ] || exit 0
+          cp "$STATE" /tmp/state_fresh.json
+          git add "$STATE"
+          git diff --cached --quiet || git commit -m "Update wantlist state $STATE [skip ci]"
+          for i in 1 2 3 4 5 6; do
             if git push; then
               exit 0
             fi
-            echo "Push rejected, retrying ($i/5) ..."
+            echo "Push rejected, retrying ($i/6) ..."
             git fetch origin main
             git reset --hard origin/main
-            cp /tmp/state_fresh.json wantlist_state.json 2>/dev/null || true
-            git add wantlist_state.json 2>/dev/null || true
-            git diff --cached --quiet || git commit -m "Update wantlist state [skip ci]"
+            cp /tmp/state_fresh.json "$STATE"
+            git add "$STATE"
+            git diff --cached --quiet || git commit -m "Update wantlist state $STATE [skip ci]"
+            sleep $((RANDOM % 8 + 2))
           done
-          echo "Push failed after 5 retries" >&2
+          echo "Push failed after retries" >&2
           exit 1
