@@ -408,8 +408,13 @@ def diagnose(card, items, fx):
             why.append(f"ratio{pp / ref:.2f}")
         if card.get("min_chf") and total < card["min_chf"]:
             why.append("min_chf")
+        # relevante Zeilen: Lot-Karten nur mit Stueckzahl>=2, Sealed-Karten nur wenn 'require' passt
+        if card.get("lot") and qty < 2:
+            continue
+        if card.get("sealed") and card.get("require") and not re.search(card["require"], t, re.I):
+            continue
         rows.append((total, f"DIAG CHF {total:7.2f} q{qty} [{it['source']}|{it['country'][:12]}] {','.join(why) or 'OK'} | {t[:85]} | {it['url']}"))
-    for _, line in sorted(rows)[:60]:
+    for _, line in sorted(rows)[:80]:
         log(line)
     log(f"DIAG {card['id']}: {len(rows)} lose Treffer")
 
