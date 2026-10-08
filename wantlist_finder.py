@@ -332,6 +332,8 @@ def evaluate(card, items, fx):
                 "schweiz", "switzerland", "suisse", "svizzera"):
             continue   # nur Verkaeufer aus der Schweiz (unbekannter Standort bleibt drin)
         lang = detect_lang(it["title"])
+        if card.get("graded_only") and not is_graded(it["title"]):
+            continue   # nur gegradete Karten gewuenscht
         if card.get("allowed_graders") and is_graded(it["title"]):
             gm = GRADE_RE.search(it["title"])
             if not gm or gm.group(1).upper() not in [g.upper() for g in card["allowed_graders"]]:
