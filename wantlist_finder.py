@@ -41,7 +41,7 @@ DRY_RUN = "--dry-run" in sys.argv
 RESET = "--reset" in sys.argv
 
 PAGE_WAIT_MS = 2500
-MAX_POSTS_PER_RUN = 40
+MAX_POSTS_PER_RUN = 60
 MAX_POSTS_PER_CARD = 10   # damit jede Wunschkarte pro Lauf drankommt (guenstigste zuerst)
 RICARDO_SHIP_ESTIMATE = 8.0    # CHF, Ricardo-Trefferliste zeigt keinen Versand
 FOREIGN_SHIP_DEFAULT = {"EUR": 12.0, "USD": 20.0}   # falls eBay keinen Versand nennt
@@ -141,7 +141,17 @@ def parse_shipping(s, cur):
     return v if v is not None else None
 
 
+GRADE_RE = re.compile(r"\b(psa|bgs|cgc|ars|ags|pca|sgc)\s*-?\s*(\d{1,2}(?:\.\d)?)\b", re.I)
+
+
+def is_graded(t):
+    return bool(GRADE_RE.search(t) or re.search(r"\b(graded|slab|gegradet)\b", t, re.I))
+
+
 def detect_condition(t):
+    g = GRADE_RE.search(t)
+    if g:
+        return f"{g.group(1).upper()} {g.group(2)}"
     for pat, label in CONDITIONS:
         if re.search(pat, t, re.I):
             return label
@@ -487,7 +497,14 @@ def main():
                 for r in res[:15]:
                     flag = "NEU " if r["id"] not in st["seen"] else "    "
                     log(f"  {flag}CHF {r['total']:.2f} ({r['condition']}, {r['lang']}) [{r['source']}] {r['title'][:70]} | {r['url']}")
-                all_new += [r for r in res if r["id"] not in st["seen"]][:MAX_POSTS_PER_CARD]
+                fresh = [r for r in res if r["id"] not in st["seen"]]
+                if card.get("grade_split"):
+                    graded = [r for r in fresh if is_graded(r["title"])][:MAX_POSTS_PER_CARD]
+                    raw = [r for r in fresh if not is_graded(r["title"])][:MAX_POSTS_PER_CARD]
+                    log(f"  Aufteilung: {len(graded)} gegradet, {len(raw)} ungegradet (neu)")
+                    all_new += graded + raw
+                else:
+                    all_new += fresh[:MAX_POSTS_PER_CARD]
             browser.close()
 
         all_new = all_new[:MAX_POSTS_PER_RUN]

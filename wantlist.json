@@ -122,7 +122,8 @@
         "JP",
         "EN"
       ],
-      "note": "Kein Cardmarket-Referenzpreis; Vergleichsangebot: PSA 9 eBay cardfortress ca. CHF 255 inkl. Versand+Einfuhr (2026-10-08)"
+      "note": "Kein Cardmarket-Referenzpreis; Vergleichsangebot: PSA 9 eBay cardfortress ca. CHF 255 inkl. Versand+Einfuhr (2026-10-08)",
+      "grade_split": true
     }
   ]
 }
