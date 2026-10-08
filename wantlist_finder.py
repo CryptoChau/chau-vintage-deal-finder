@@ -65,7 +65,7 @@ CONDITIONS = [
     (r"\b(near\s*mint|nm|mint|nm/m|m/nm|nm-mt)\b", "NM"),
     (r"\b(excellent|ex-?mt|lightly\s*played|lp|light\s*play|leicht\s*bespielt|lp/ex)\b", "EX/LP"),
     (r"\b(moderately\s*played|moderate[d]?\s*play(ed)?|mp|good|gut\s*bespielt|played|bespielt|gespielt)\b", "MP/Played"),
-    (r"\b(heavily\s*played|hp|poor|damaged|beschädigt|beschaedigt|stark\s*bespielt)\b", "HP/Damaged"),
+    (r"\b(heavily\s*played|hp|poor|dmg|damaged|beschädigt|beschaedigt|stark\s*bespielt)\b", "HP/Damaged"),
 ]
 
 
@@ -360,7 +360,7 @@ def main():
         log("Ein anderer Lauf ist bereits aktiv, abgebrochen.")
         return
     try:
-        webhook = os.environ.get("DISCORD_WEBHOOK_WANTLIST") or ""
+        webhook = (os.environ.get("DISCORD_WEBHOOK_WANTLIST") or "").strip().lstrip("﻿")
         if not webhook and not DRY_RUN and os.name == "nt":
             import subprocess
             webhook = subprocess.run(["powershell", "-NoProfile", "-Command",
