@@ -103,6 +103,26 @@
       ],
       "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Phantasmal-Flames-Booster-Box",
       "swiss_only": false
+    },
+    {
+      "id": "mewtwo-striking-back-10th-movie-jp",
+      "name": "Striking Back Mewtwo Holo (10th Movie Commemoration Promo, JP 2007)",
+      "queries": [
+        "striking back mewtwo holo 10th movie promo japanese",
+        "mewtwo gyakushuu 10th movie commemoration japanese",
+        "striking back mewtwo psa",
+        "mewtwo 10th movie commemoration set holo"
+      ],
+      "match": "mewtwo|ミュウツー",
+      "require": "striking\\s*back|gyakush|10th\\s*movie|movie\\s*commemoration|逆襲",
+      "reject": "\\b(25th|151|vstar|vmax|gx|tag\\s*team)\\b|\\bex\\b",
+      "min_chf": 30,
+      "max_chf": 800,
+      "langs": [
+        "JP",
+        "EN"
+      ],
+      "note": "Kein Cardmarket-Referenzpreis; Vergleichsangebot: PSA 9 eBay cardfortress ca. CHF 255 inkl. Versand+Einfuhr (2026-10-08)"
     }
   ]
 }
