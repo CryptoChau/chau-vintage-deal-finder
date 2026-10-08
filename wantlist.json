@@ -56,22 +56,19 @@
       "lot": true,
       "queries": [
         "pikachu 30th celebration 040 lot",
-        "pikachu 30th celebration playset",
-        "pikachu 30c 040 x10",
+        "pikachu 30th celebration 040 x10",
+        "pikachu 30c 040 playset",
         "pikachu 30 jahre 040 lot"
       ],
       "match": "pikachu",
-      "number_words": [
-        "30th celebration",
-        "30 jahre",
-        "30c",
-        "30th anniversary",
-        "30 years"
-      ],
+      "number_words": [],
       "number": [
         "040",
         "30c 040",
-        "30c040"
+        "30c040",
+        "#40",
+        "no. 40",
+        "nr. 40"
       ],
       "min_qty": 4,
       "ref_eur": 1.55,
@@ -80,7 +77,29 @@
         "EN",
         "JP"
       ],
-      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/30th-Celebration/Pikachu-30C040"
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Singles/30th-Celebration/Pikachu-30C040",
+      "reject": "full\\s*set|komplett|complete|compleet|master\\s*set|set\\s*#?\\s*1\\b|\\b0?\\d{1,2}\\s*[-–]\\s*0?\\d{2,3}\\b|chinese|chinesisch|simplified|s-chinese|korea|koreanisch|different|verschiedene|random|zufall|mystery"
+    },
+    {
+      "id": "me02-phantasmal-flames-display",
+      "name": "Phantasmal Flames / Fatale Flammen (ME02) Booster Box (Display)",
+      "sealed": true,
+      "queries": [
+        "pokemon phantasmal flames booster box sealed",
+        "pokemon phantasmal flames display 36 packs",
+        "pokemon fatale flammen display"
+      ],
+      "match": "phantasmal\\s*flames|fatale\\s*flammen|\\bme\\s*0?2\\b",
+      "require": "\\b(box|display|bb)\\b|36\\s*packs?|booster\\s*box",
+      "reject": "\\b(1|one|single)\\s*(booster\\s*)?pack\\b|bundle|\\betb\\b|elite|\\btin\\b|blister|build\\s*&?\\s*battle|\\bpsa\\b|\\bcgc\\b|japan|japanisch|jpn|korea|chinese|chinesisch|inferno|mini|sleeved|half\\s*box",
+      "min_chf": 150,
+      "ref_eur": 304.59,
+      "post_up_to_ratio": 1.0,
+      "langs": [
+        "EN",
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Phantasmal-Flames-Booster-Box"
     }
   ]
 }
