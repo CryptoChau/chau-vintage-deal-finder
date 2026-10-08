@@ -304,6 +304,8 @@ def evaluate(card, items, fx):
         total, duty, foreign = landed_chf(it["price"], it["ship"], it["cur"], it["country"], fx)
         if total < card.get("min_chf", 0):
             continue
+        if card.get("max_chf") and total > card["max_chf"]:
+            continue
         ratio = total / ref_chf if ref_chf else None
         if ratio is not None and ratio > card.get("post_up_to_ratio", 1.15):
             continue

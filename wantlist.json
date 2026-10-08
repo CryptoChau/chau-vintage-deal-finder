@@ -42,12 +42,13 @@
       ],
       "match": "lost\\s*abyss|\\bs11\\b|ロストアビス",
       "require": "\\b(box|display|bb)\\b|30\\s*packs?",
-      "reject": "\\b(1|one|single)\\s*(booster\\s*)?pack\\b|\\bpack\\s*(only|x\\s*1)\\b|\\bpsa\\b|\\bcgc\\b|lost\\s*origin",
+      "reject": "\\b(1|one|single)\\s*(booster\\s*)?pack\\b|\\bpack\\s*(only|x\\s*1)\\b|\\bpsa\\b|\\bcgc\\b|lost\\s*origin|korea|koreanisch|\\bkor\\b|\\bkr\\b|한국|\\bs12\\b|\\bs10\\b|\\bs9\\b|\\bs8\\b|chinese|chinesisch|simplified",
       "min_chf": 70,
       "langs": [
         "EN",
         "JP"
-      ]
+      ],
+      "max_chf": 400
     }
   ]
 }
