@@ -41,7 +41,8 @@ DRY_RUN = "--dry-run" in sys.argv
 RESET = "--reset" in sys.argv
 
 PAGE_WAIT_MS = 2500
-MAX_POSTS_PER_RUN = 20
+MAX_POSTS_PER_RUN = 40
+MAX_POSTS_PER_CARD = 10   # damit jede Wunschkarte pro Lauf drankommt (guenstigste zuerst)
 RICARDO_SHIP_ESTIMATE = 8.0    # CHF, Ricardo-Trefferliste zeigt keinen Versand
 FOREIGN_SHIP_DEFAULT = {"EUR": 12.0, "USD": 20.0}   # falls eBay keinen Versand nennt
 # Schweizer Einfuhr: MWST 8.1 % + Post-Verzollungsgebuehr, erst ab ca. CHF 62 Warenwert
@@ -401,7 +402,7 @@ def main():
                 for r in res[:15]:
                     flag = "NEU " if r["id"] not in st["seen"] else "    "
                     log(f"  {flag}CHF {r['total']:.2f} ({r['condition']}, {r['lang']}) [{r['source']}] {r['title'][:70]} | {r['url']}")
-                all_new += [r for r in res if r["id"] not in st["seen"]]
+                all_new += [r for r in res if r["id"] not in st["seen"]][:MAX_POSTS_PER_CARD]
             browser.close()
 
         all_new = all_new[:MAX_POSTS_PER_RUN]
