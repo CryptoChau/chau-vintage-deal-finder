@@ -54,7 +54,8 @@ FX_FALLBACK = {"CHF": 1.0, "EUR": 0.93, "USD": 0.80, "JPY": 0.0053}   # CHF je 1
 EXCLUDE = re.compile(
     r"\b(proxy|custom|fake|replica|orica|repro|reprint|digital|code\b|codes\b|tcg\s*live|"
     r"lot\b|bundle|bulk|konvolut|sammlung|collection|sticker|magnet|poster|puzzle|plush|"
-    r"booster|display|sleeve|binder|playmat|case\b)\b",
+    r"booster|display|sleeve|binder|playmat|case\b|extended\s*art|altered|art\s*card|"
+    r"f(ü|u|ue)r\s*(psa|cgc|bgs)|for\s*(psa|cgc|bgs)|toploader|ultra\s*pro)\b",
     re.I,
 )
 
@@ -62,8 +63,8 @@ CONDITIONS = [
     (r"\b(gem\s*mint|psa\s*10|bgs\s*10|cgc\s*10)\b", "Gem Mint / Graded 10"),
     (r"\b(psa|bgs|cgc|ags)\s*-?\s*\d{1,2}(\.\d)?\b|graded|slab", "Gegradet"),
     (r"\b(near\s*mint|nm|mint|nm/m|m/nm|nm-mt)\b", "NM"),
-    (r"\b(excellent|ex\b|lightly\s*played|lp|light\s*play|leicht\s*bespielt|lp/ex)\b", "EX/LP"),
-    (r"\b(moderately\s*played|mp|good|gut\s*bespielt|played|bespielt|gespielt)\b", "MP/Played"),
+    (r"\b(excellent|ex-?mt|lightly\s*played|lp|light\s*play|leicht\s*bespielt|lp/ex)\b", "EX/LP"),
+    (r"\b(moderately\s*played|moderate[d]?\s*play(ed)?|mp|good|gut\s*bespielt|played|bespielt|gespielt)\b", "MP/Played"),
     (r"\b(heavily\s*played|hp|poor|damaged|beschädigt|beschaedigt|stark\s*bespielt)\b", "HP/Damaged"),
 ]
 

@@ -17,11 +17,11 @@
       ],
       "number_words": [
         "full art",
-        "fa ",
-        "ancient origins",
-        "ewiger anfang"
+        " fa ",
+        "ultra rare",
+        " ur "
       ],
-      "other_number_regex": "\\b(?!92\\b)\\d{1,3}\\s*/\\s*98\\b",
+      "other_number_regex": "\\b(?!92\\b)\\d{1,3}\\s*/\\s*98\\b|#\\s*(?!92\\b)\\d{1,3}\\b",
       "min_chf": 30,
       "ref_eur": 95.89,
       "post_up_to_ratio": 1.15,
