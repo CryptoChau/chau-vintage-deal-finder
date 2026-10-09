@@ -150,6 +150,61 @@
         "EN",
         "JP"
       ]
+    },
+    {
+      "id": "paf-booster-bundle",
+      "name": "Paldean Fates Booster Bundle (Paldeas Schicksale)",
+      "sealed": true,
+      "swiss_first": 3,
+      "queries": [
+        "pokemon paldean fates booster bundle",
+        "pokemon paldeas schicksale booster bundle",
+        "paldean fates bundle sealed"
+      ],
+      "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
+      "require": "bundle",
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|display|case\\b|\\b6\\s*x\\b|\\bx\\s*6\\b|6\\s*bundles?|karton",
+      "min_chf": 15,
+      "langs": [
+        "EN"
+      ]
+    },
+    {
+      "id": "paf-booster-display",
+      "name": "Paldean Fates Booster Bundle Display / Booster Display",
+      "sealed": true,
+      "swiss_first": 2,
+      "queries": [
+        "pokemon paldean fates booster bundle display",
+        "pokemon paldean fates display sealed",
+        "pokemon paldeas schicksale display"
+      ],
+      "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
+      "require": "display|\\bcase\\b|6\\s*bundles?|booster\\s*box|\\bbox\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|booster\\s*pack\\b|single|einzel",
+      "min_chf": 100,
+      "langs": [
+        "EN"
+      ]
+    },
+    {
+      "id": "paf-booster-pack",
+      "name": "Paldean Fates Booster Pack (einzeln)",
+      "sealed": true,
+      "swiss_first": 3,
+      "queries": [
+        "pokemon paldean fates booster pack sealed",
+        "pokemon paldeas schicksale booster pack",
+        "paldean fates sleeved booster pack"
+      ],
+      "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
+      "require": "booster\\s*pack|boosterpack|sleeved\\s*booster|\\bpack\\b|booster\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|bundle|display|case\\b|box|karton|\\d+\\s*x\\b|\\bx\\s*\\d+|lot\\b",
+      "min_chf": 4,
+      "max_chf": 40,
+      "langs": [
+        "EN"
+      ]
     }
   ]
 }

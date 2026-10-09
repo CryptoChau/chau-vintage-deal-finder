@@ -288,6 +288,10 @@ def fetch_ricardo(browser, card):
     return out
 
 
+def is_swiss(r):
+    return r.get("source") == "Ricardo.ch" or (r.get("country") or "").lower() in ("schweiz", "switzerland", "suisse", "svizzera")
+
+
 def parse_qty(t):
     """Stueckzahl aus Titel ('10x', 'x10', '25 Stk', 'Playset', '4er Set'); 1 wenn keine Angabe."""
     m = re.search(r"\b(\d{1,3})\s*[x×]\b|\b[x×]\s*(\d{1,3})\b|\b(\d{1,3})\s*(?:stk|stück|stueck|pcs|pieces|cards|karten|st\.)|\b(\d{1,3})er\s*(?:set|pack|lot)|\b(?:lot|set|bundle)\s*(?:of|von)\s*(\d{1,3})\b", t, re.I)
@@ -368,6 +372,8 @@ def post_discord(webhook, deals):
     embeds = []
     for d in deals:
         parts = [f"**CHF {d['total']:.2f}** Gesamtpreis inkl. Versand" + (" + Zoll/MWST (geschaetzt)" if d["duty"] else "")]
+        if is_swiss(d):
+            parts[0] += "  \U0001F1E8\U0001F1ED Schweiz"
         orig = f"{d['price']:.2f} {d['cur']}"
         ship_note = " (geschaetzt)" if d["ship_est"] else ""
         parts.append(f"Angebot: {orig} + Versand {d['ship']:.2f} {d['cur']}{ship_note}"
@@ -496,10 +502,26 @@ def main():
                 log(f"=== {card['name']} ===")
                 fc = dict(card, sources=None) if (diag_id and card["id"] in diag_id.split(",")) else card  # Diagnose: alle Maerkte
                 items = {}
-                items.update(fetch_ebay(page, fc))
-                if not fc.get("sources") or "Ricardo.ch" in fc["sources"]:
-                    items.update(fetch_ricardo(browser, fc))
-                res = evaluate(card, items, fx)
+                if card.get("swiss_first") and fc is card:
+                    # Phase 1: nur Schweizer Markt (eBay.ch-Verkaeufer aus der Schweiz + Ricardo)
+                    sw = dict(card, sources=["eBay.ch", "Ricardo.ch"])
+                    items.update(fetch_ebay(page, sw))
+                    items.update(fetch_ricardo(browser, sw))
+                    res_sw = evaluate(dict(card, swiss_only=True), items, fx)
+                    need = int(card["swiss_first"])
+                    log(f"Schweiz-Phase: {len(res_sw)} passende Schweizer Angebote (Schwelle {need})")
+                    if len(res_sw) >= need:
+                        res = res_sw
+                    else:
+                        log("Zu wenige Schweizer Treffer -> international erweitern (eBay.de/.com + Auslandsverkaeufer)")
+                        items.update(fetch_ebay(page, dict(card, sources=["eBay.de", "eBay.com"])))
+                        res = evaluate(card, items, fx)
+                        res.sort(key=lambda r: (0 if is_swiss(r) else 1, r["total"]))
+                else:
+                    items.update(fetch_ebay(page, fc))
+                    if not fc.get("sources") or "Ricardo.ch" in fc["sources"]:
+                        items.update(fetch_ricardo(browser, fc))
+                    res = evaluate(card, items, fx)
                 if diag_id and card["id"] in diag_id.split(","):
                     diagnose(card, items, fx)
                 log(f"{len(items)} Angebote geladen, {len(res)} passend")
