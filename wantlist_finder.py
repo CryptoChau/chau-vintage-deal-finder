@@ -162,7 +162,7 @@ def detect_condition(t):
 def detect_lang(t):
     if re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b|日本", t, re.I):
         return "JP"
-    if re.search(r"portug|spanish|espa[nñ]ol|french|fran[cç]ais|franz[oö]sisch|italian|italiano|korea|chinese|chinesisch", t, re.I):
+    if re.search(r"portug|spanish|espa[nñ]ol|french|fran[cç]ais|franz[oö]sisch|italian|italiano|korea|chinese|chinesisch|\bfr\b|\bfra\b", t, re.I):
         return "XX"
     return "EN"
 
