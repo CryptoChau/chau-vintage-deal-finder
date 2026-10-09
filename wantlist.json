@@ -163,11 +163,14 @@
       ],
       "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
       "require": "bundle",
-      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|display|case\\b|\\b6\\s*x\\b|\\bx\\s*6\\b|6\\s*bundles?|karton",
-      "min_chf": 15,
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|display|case\\b|\\b6\\s*x\\b|\\bx\\s*6\\b|6\\s*bundles?|karton|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|staryu|dolliv|pawmi",
+      "min_chf": 40,
       "langs": [
         "EN"
-      ]
+      ],
+      "ref_eur": 120.92,
+      "post_up_to_ratio": 1.25,
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Paldean-Fates-Booster-Bundle"
     },
     {
       "id": "paf-booster-display",
@@ -181,11 +184,14 @@
       ],
       "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
       "require": "display|\\bcase\\b|6\\s*bundles?|booster\\s*box|\\bbox\\b",
-      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|booster\\s*pack\\b|single|einzel",
-      "min_chf": 100,
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|booster\\s*pack\\b|single|einzel|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|staryu|dolliv|pawmi",
+      "min_chf": 500,
       "langs": [
         "EN"
-      ]
+      ],
+      "ref_eur": 1544.95,
+      "post_up_to_ratio": 1.25,
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Paldean-Fates-Booster-Bundle-Display"
     },
     {
       "id": "paf-booster-pack",
@@ -199,12 +205,14 @@
       ],
       "match": "paldean\\s*fates|paldeas?\\s*schicksale|schicksale\\s*aus\\s*paldea|\\bsv\\s*4\\.?5\\b",
       "require": "booster\\s*pack|boosterpack|sleeved\\s*booster|\\bpack\\b|booster\\b",
-      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|bundle|display|case\\b|box|karton|\\d+\\s*x\\b|\\bx\\s*\\d+|lot\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|japan|japanisch|jpn|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|pin\\b|leer|empty|opened|geöffnet|geoeffnet|bundle|display|case\\b|box|karton|\\d+\\s*x\\b|\\bx\\s*\\d+|lot\\b|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|staryu|dolliv|pawmi",
       "min_chf": 4,
-      "max_chf": 40,
       "langs": [
         "EN"
-      ]
+      ],
+      "ref_eur": 19.46,
+      "post_up_to_ratio": 1.7,
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Boosters/Paldean-Fates-Booster"
     }
   ]
 }
