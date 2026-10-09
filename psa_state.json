@@ -529,7 +529,19 @@
 "168780086304": "2026-10-09",
 "227559887070": "2026-10-09",
 "920022201480": "2026-10-09",
-"147624279176": "2026-10-09"
+"147624279176": "2026-10-09",
+"800773805371": "2026-10-09",
+"366644320016": "2026-10-09",
+"307223318306": "2026-10-09",
+"298742919896": "2026-10-09",
+"860027256963": "2026-10-09",
+"860027228537": "2026-10-09",
+"278445343138": "2026-10-09",
+"366723091104": "2026-10-09",
+"900001571869": "2026-10-09",
+"298739003486": "2026-10-09",
+"206614469436": "2026-10-09",
+"327396758444": "2026-10-09"
 },
 "history": {
 "EN|Base Set 2|Unlimited|Gyarados|PSA 6": {
@@ -15084,6 +15096,10 @@
 "178568690997": {
 "total": 132.89,
 "last_seen": "2026-10-09"
+},
+"900001511286": {
+"total": 164.36,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set|Unlimited|Standard|Clefairy|PSA 8": {
@@ -15174,6 +15190,10 @@
 "920016090368": {
 "total": 115.09,
 "last_seen": "2026-10-08"
+},
+"117457338674": {
+"total": 132.88,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set|Unlimited|Standard|Nidoking|PSA 9": {
@@ -15340,11 +15360,11 @@
 "last_seen": "2026-10-09"
 },
 "366721877716": {
-"total": 609.39,
+"total": 654.35,
 "last_seen": "2026-10-09"
 },
 "366721876631": {
-"total": 609.39,
+"total": 654.35,
 "last_seen": "2026-10-09"
 }
 },
@@ -15371,6 +15391,10 @@
 },
 "189063140560": {
 "total": 81.88,
+"last_seen": "2026-10-09"
+},
+"820221379023": {
+"total": 92.43,
 "last_seen": "2026-10-09"
 }
 },
@@ -15450,6 +15474,10 @@
 "147626465345": {
 "total": 106.08,
 "last_seen": "2026-10-09"
+},
+"860027305455": {
+"total": 137.39,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set Shadowless|Shadowless|Standard|Pikachu|PSA 6": {
@@ -15472,6 +15500,10 @@
 "178565636436": {
 "total": 88.06,
 "last_seen": "2026-10-08"
+},
+"336837242229": {
+"total": 100.52,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set 1st Ed.|1st Ed|Standard|Machamp|PSA 7": {
@@ -15500,7 +15532,7 @@
 "last_seen": "2026-10-09"
 },
 "168780971332": {
-"total": 492.52,
+"total": 465.54,
 "last_seen": "2026-10-09"
 }
 },
@@ -15600,6 +15632,10 @@
 "278434941559": {
 "total": 294.72,
 "last_seen": "2026-10-09"
+},
+"840003817428": {
+"total": 300.11,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set Shadowless|Shadowless|Standard|Gyarados|PSA 8": {
@@ -15643,6 +15679,10 @@
 },
 "366718459374": {
 "total": 556.53,
+"last_seen": "2026-10-09"
+},
+"920024811809": {
+"total": 563.54,
 "last_seen": "2026-10-09"
 }
 },
@@ -15746,6 +15786,10 @@
 "178555278413": {
 "total": 75.27,
 "last_seen": "2026-10-06"
+},
+"820221157735": {
+"total": 158.85,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set|Unlimited|Standard|Poliwrath|PSA 6": {
@@ -15891,6 +15935,10 @@
 },
 "860024690722": {
 "total": 692.02,
+"last_seen": "2026-10-09"
+},
+"900001571869": {
+"total": 114.91,
 "last_seen": "2026-10-09"
 }
 },
@@ -16045,6 +16093,10 @@
 },
 "178562329475": {
 "total": 168.85,
+"last_seen": "2026-10-09"
+},
+"366723091104": {
+"total": 87.93,
 "last_seen": "2026-10-09"
 }
 },
@@ -16440,6 +16492,10 @@
 "298741006969": {
 "total": 169.14,
 "last_seen": "2026-10-09"
+},
+"307223069768": {
+"total": 159.85,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set Shadowless|Shadowless|Standard|Clefairy|PSA 8": {
@@ -16562,15 +16618,27 @@
 "178568160436": {
 "total": 227.71,
 "last_seen": "2026-10-08"
+},
+"307223311547": {
+"total": 294.72,
+"last_seen": "2026-10-09"
+},
+"800776903211": {
+"total": 227.29,
+"last_seen": "2026-10-09"
+},
+"377557603160": {
+"total": 258.65,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Jungle|Unlimited|Standard|Scyther|PSA 10": {
 "820208226942": {
-"total": 1059.15,
+"total": 1058.13,
 "last_seen": "2026-10-09"
 },
 "820206822566": {
-"total": 1057.12,
+"total": 1056.12,
 "last_seen": "2026-10-09"
 },
 "298730905847": {
@@ -16578,7 +16646,7 @@
 "last_seen": "2026-10-09"
 },
 "820208288394": {
-"total": 1165.98,
+"total": 1164.98,
 "last_seen": "2026-10-09"
 },
 "820219787693": {
@@ -16774,6 +16842,10 @@
 "147617369570": {
 "total": 517.88,
 "last_seen": "2026-10-07"
+},
+"820221339866": {
+"total": 517.95,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Jungle|Unlimited|Standard|Pikachu|PSA 9": {
@@ -16961,6 +17033,10 @@
 },
 "307220723641": {
 "total": 128.4,
+"last_seen": "2026-10-09"
+},
+"117457067551": {
+"total": 137.39,
 "last_seen": "2026-10-09"
 }
 },
@@ -17530,6 +17606,10 @@
 "307218725030": {
 "total": 293.82,
 "last_seen": "2026-10-09"
+},
+"307223064336": {
+"total": 132.89,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Jungle|Unlimited|Standard|Eevee|PSA 9": {
@@ -17538,7 +17618,7 @@
 "last_seen": "2026-10-09"
 },
 "137808043529": {
-"total": 385.67,
+"total": 386.25,
 "last_seen": "2026-10-09"
 },
 "137782305879": {
@@ -17575,6 +17655,10 @@
 },
 "267808135900": {
 "total": 107.15,
+"last_seen": "2026-10-09"
+},
+"137829077905": {
+"total": 137.39,
 "last_seen": "2026-10-09"
 }
 },
@@ -17726,6 +17810,10 @@
 "860013770301": {
 "total": 333.19,
 "last_seen": "2026-10-09"
+},
+"327396726343": {
+"total": 141.88,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Jungle|Unlimited|Standard|Mr. Mime|PSA 4": {
@@ -17860,7 +17948,7 @@
 "last_seen": "2026-10-09"
 },
 "137808088987": {
-"total": 359.0,
+"total": 359.53,
 "last_seen": "2026-10-09"
 },
 "318918111587": {
@@ -17870,6 +17958,14 @@
 "960027071556": {
 "total": 354.41,
 "last_seen": "2026-10-08"
+},
+"327396723715": {
+"total": 258.76,
+"last_seen": "2026-10-09"
+},
+"840003817420": {
+"total": 294.71,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Jungle|1st Ed|Standard|Pikachu|PSA 8": {
@@ -18064,6 +18160,10 @@
 "287637446526": {
 "total": 420.59,
 "last_seen": "2026-10-09"
+},
+"327396709673": {
+"total": 488.02,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|1st Ed|Standard|Ditto|PSA 8": {
@@ -18140,6 +18240,10 @@
 "117450928486": {
 "total": 155.59,
 "last_seen": "2026-10-08"
+},
+"820221817873": {
+"total": 159.86,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|Unlimited|Promo/Special|Dragonite|PSA 10": {
@@ -18185,6 +18289,10 @@
 },
 "168780263150": {
 "total": 294.72,
+"last_seen": "2026-10-09"
+},
+"287638037453": {
+"total": 447.33,
 "last_seen": "2026-10-09"
 }
 },
@@ -18321,6 +18429,10 @@
 },
 "820220951889": {
 "total": 204.81,
+"last_seen": "2026-10-09"
+},
+"860027228537": {
+"total": 74.44,
 "last_seen": "2026-10-09"
 }
 },
@@ -18764,6 +18876,10 @@
 "298743710289": {
 "total": 204.81,
 "last_seen": "2026-10-09"
+},
+"840004272671": {
+"total": 182.34,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|1st Ed|Standard|Articuno|PSA 9": {
@@ -18918,6 +19034,10 @@
 "117442619691": {
 "total": 204.55,
 "last_seen": "2026-10-06"
+},
+"327396719052": {
+"total": 182.34,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|Unlimited|Standard|Gengar|PSA 7": {
@@ -18975,6 +19095,14 @@
 },
 "298742919896": {
 "total": 203.92,
+"last_seen": "2026-10-09"
+},
+"860027256963": {
+"total": 236.29,
+"last_seen": "2026-10-09"
+},
+"307223018482": {
+"total": 1192.89,
 "last_seen": "2026-10-09"
 }
 },
@@ -19088,6 +19216,10 @@
 "860006096236": {
 "total": 232.75,
 "last_seen": "2026-10-06"
+},
+"860027240883": {
+"total": 203.92,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|1st Ed|Standard|Hitmonlee|PSA 7": {
@@ -19127,6 +19259,10 @@
 },
 "117455132512": {
 "total": 265.05,
+"last_seen": "2026-10-09"
+},
+"327396756835": {
+"total": 276.74,
 "last_seen": "2026-10-09"
 }
 },
@@ -19318,6 +19454,10 @@
 "237108808755": {
 "total": 276.37,
 "last_seen": "2026-10-06"
+},
+"900001254288": {
+"total": 92.43,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Team Rocket|1st Ed|Standard|Dark Golbat|PSA 8": {
@@ -19405,6 +19545,14 @@
 },
 "860023436118": {
 "total": 555.45,
+"last_seen": "2026-10-09"
+},
+"800776623843": {
+"total": 226.58,
+"last_seen": "2026-10-09"
+},
+"900001250293": {
+"total": 203.92,
 "last_seen": "2026-10-09"
 }
 },
@@ -19502,6 +19650,10 @@
 "206608400460": {
 "total": 577.02,
 "last_seen": "2026-10-08"
+},
+"840003817421": {
+"total": 483.52,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Heroes|Unlimited|Standard|Erika's Vileplume|PSA 9": {
@@ -19582,7 +19734,11 @@
 "last_seen": "2026-10-09"
 },
 "168780944715": {
-"total": 258.76,
+"total": 240.78,
+"last_seen": "2026-10-09"
+},
+"880002255647": {
+"total": 362.15,
 "last_seen": "2026-10-09"
 }
 },
@@ -19968,7 +20124,7 @@
 },
 "EN|Gym Heroes|Unlimited|Standard|Erika's Vileplume|PSA 7": {
 "137790543900": {
-"total": 62.75,
+"total": 60.95,
 "last_seen": "2026-10-09"
 },
 "398437516086": {
@@ -20378,7 +20534,7 @@
 "last_seen": "2026-10-09"
 },
 "137810890110": {
-"total": 485.97,
+"total": 482.74,
 "last_seen": "2026-10-09"
 },
 "960032998545": {
@@ -20443,6 +20599,10 @@
 "EN|Gym Challenge|Unlimited|Standard|Lt. Surge's Raichu|PSA 10": {
 "189044131447": {
 "total": 1366.02,
+"last_seen": "2026-10-09"
+},
+"307222866017": {
+"total": 2991.92,
 "last_seen": "2026-10-09"
 }
 },
@@ -20658,6 +20818,10 @@
 "336832365179": {
 "total": 123.86,
 "last_seen": "2026-10-09"
+},
+"336836978262": {
+"total": 110.4,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|1st Ed|Standard|Koga's Ditto|PSA 7": {
@@ -20732,6 +20896,10 @@
 "257789415146": {
 "total": 340.99,
 "last_seen": "2026-10-09"
+},
+"920024740698": {
+"total": 386.87,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|Unlimited|Standard|Misty's Gyarados|PSA 8": {
@@ -20782,6 +20950,10 @@
 "298742169437": {
 "total": 339.67,
 "last_seen": "2026-10-09"
+},
+"206614469436": {
+"total": 168.85,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|Unlimited|Standard|Alakazam|PSA 8": {
@@ -20798,6 +20970,10 @@
 "158378540639": {
 "total": 250.23,
 "last_seen": "2026-10-08"
+},
+"860026457599": {
+"total": 304.6,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|Unlimited|Standard|Blaine's Charizard|PSA 1": {
@@ -20942,6 +21118,10 @@
 "800743844954": {
 "total": 203.57,
 "last_seen": "2026-10-09"
+},
+"840003817436": {
+"total": 195.81,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|1st Ed|Standard|Sabrina's Alakazam|PSA 7": {
@@ -20971,6 +21151,10 @@
 "JP|Gym|Unlimited|Standard|Blaine's Arcanine|PSA 9": {
 "318942604181": {
 "total": 266.68,
+"last_seen": "2026-10-09"
+},
+"800776826092": {
+"total": 214.67,
 "last_seen": "2026-10-09"
 }
 },
@@ -21028,6 +21212,10 @@
 "257788487978": {
 "total": 589.56,
 "last_seen": "2026-10-08"
+},
+"287637446543": {
+"total": 420.58,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|Unlimited|Standard|Koga's Beedrill|PSA 9": {
@@ -21076,6 +21264,10 @@
 "298718637106": {
 "total": 1148.83,
 "last_seen": "2026-10-07"
+},
+"860027370190": {
+"total": 470.03,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Gym Challenge|Unlimited|Standard|Blaine's Charizard|PSA 9": {
@@ -21100,6 +21292,10 @@
 "178540132486": {
 "total": 384.63,
 "last_seen": "2026-10-07"
+},
+"940000868723": {
+"total": 356.76,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Gym Challenge|Unlimited|Standard|Erika's Venusaur|PSA 6": {
@@ -21192,11 +21388,11 @@
 },
 "EN|Neo Genesis|Unlimited|Standard|Pichu|PSA 10": {
 "820208270679": {
-"total": 2537.79,
+"total": 2535.78,
 "last_seen": "2026-10-09"
 },
 "820206823303": {
-"total": 2534.77,
+"total": 2531.75,
 "last_seen": "2026-10-09"
 }
 },
@@ -21674,6 +21870,10 @@
 "298739003486": {
 "total": 123.9,
 "last_seen": "2026-10-09"
+},
+"860027520154": {
+"total": 132.89,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Genesis|1st Ed|Standard|Meganium|PSA 8": {
@@ -21734,7 +21934,7 @@
 "last_seen": "2026-10-09"
 },
 "398356277334": {
-"total": 623.63,
+"total": 623.26,
 "last_seen": "2026-10-09"
 }
 },
@@ -21782,6 +21982,10 @@
 "189057729648": {
 "total": 474.53,
 "last_seen": "2026-10-09"
+},
+"920024822268": {
+"total": 744.25,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Genesis|Unlimited|Standard|Clefairy|PSA 10": {
@@ -21799,6 +22003,10 @@
 "EN|Neo Genesis|Unlimited|Standard|Jumpluff|PSA 7": {
 "278429710570": {
 "total": 105.91,
+"last_seen": "2026-10-09"
+},
+"920024189614": {
+"total": 119.41,
 "last_seen": "2026-10-09"
 }
 },
@@ -21896,6 +22104,10 @@
 "178548527760": {
 "total": 140.3,
 "last_seen": "2026-10-09"
+},
+"900001226749": {
+"total": 1013.97,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Genesis|1st Ed|Standard|Typhlosion|PSA 1": {
@@ -21913,6 +22125,10 @@
 "EN|Neo Genesis|Unlimited|Standard|Lugia|PSA 3": {
 "377538259671": {
 "total": 654.34,
+"last_seen": "2026-10-09"
+},
+"900001557236": {
+"total": 2542.39,
 "last_seen": "2026-10-09"
 }
 },
@@ -21945,6 +22161,10 @@
 "EN|Neo Genesis|1st Ed|Standard|Pikachu|PSA 10": {
 "117442444433": {
 "total": 1908.55,
+"last_seen": "2026-10-09"
+},
+"198702033120": {
+"total": 2721.3,
 "last_seen": "2026-10-09"
 }
 },
@@ -22092,6 +22312,10 @@
 "820198427482": {
 "total": 103.49,
 "last_seen": "2026-10-09"
+},
+"920024195308": {
+"total": 204.81,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo|Unlimited|Standard|Lugia|PSA 3": {
@@ -22128,7 +22352,7 @@
 "last_seen": "2026-10-09"
 },
 "820208162296": {
-"total": 2796.84,
+"total": 2794.82,
 "last_seen": "2026-10-09"
 }
 },
@@ -23430,11 +23654,11 @@
 },
 "EN|Neo Revelation|Unlimited|Standard|Houndoom|PSA 10": {
 "820208219691": {
-"total": 2537.79,
+"total": 2535.78,
 "last_seen": "2026-10-09"
 },
 "820206822436": {
-"total": 2534.77,
+"total": 2531.75,
 "last_seen": "2026-10-09"
 }
 },
@@ -23712,6 +23936,10 @@
 "198697013211": {
 "total": 182.65,
 "last_seen": "2026-10-08"
+},
+"900001476187": {
+"total": 2047.9,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Revelation|1st Ed|Standard|Raikou|PSA 10": {
@@ -23737,6 +23965,10 @@
 },
 "307218552643": {
 "total": 339.67,
+"last_seen": "2026-10-09"
+},
+"840003868809": {
+"total": 517.95,
 "last_seen": "2026-10-09"
 }
 },
@@ -24102,7 +24334,7 @@
 "last_seen": "2026-10-08"
 },
 "407276010895": {
-"total": 312.4,
+"total": 312.0,
 "last_seen": "2026-10-09"
 }
 },
@@ -24218,6 +24450,10 @@
 "307196849782": {
 "total": 2542.38,
 "last_seen": "2026-10-09"
+},
+"940001380042": {
+"total": 2040.88,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Revelation|Unlimited|Standard|Ho-oh|PSA 4": {
@@ -24228,7 +24464,7 @@
 },
 "EN|Team Rocket|1st Ed|Standard|Dark Dragonite|PSA 8": {
 "287602454329": {
-"total": 846.56,
+"total": 909.76,
 "last_seen": "2026-10-09"
 },
 "137818112303": {
@@ -24238,7 +24474,7 @@
 },
 "EN|Team Rocket|1st Ed|Standard|Dark Gyarados|PSA 9": {
 "287602454333": {
-"total": 783.36,
+"total": 846.56,
 "last_seen": "2026-10-09"
 },
 "820220560416": {
@@ -24499,6 +24735,10 @@
 },
 "366388717297": {
 "total": 294.72,
+"last_seen": "2026-10-09"
+},
+"377557911913": {
+"total": 250.96,
 "last_seen": "2026-10-09"
 }
 },
@@ -25118,6 +25358,10 @@
 "137770236384": {
 "total": 317.2,
 "last_seen": "2026-10-09"
+},
+"880002014856": {
+"total": 383.73,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo Destiny|Unlimited|Standard|Dark Ampharos|PSA 10": {
@@ -25346,12 +25590,20 @@
 "117409438644": {
 "total": 339.67,
 "last_seen": "2026-10-09"
+},
+"327372276804": {
+"total": 427.17,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Destiny|1st Ed|Standard|Light Arcanine|PSA 7": {
 "298727874171": {
 "total": 1820.54,
 "last_seen": "2026-10-06"
+},
+"117457217103": {
+"total": 1823.14,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Destiny|Unlimited|Standard|Shining Raichu|PSA 7": {
@@ -25418,7 +25670,7 @@
 },
 "JP|Base Set|Unlimited|Standard|Blastoise|PSA 5": {
 "960010105850": {
-"total": 126.59,
+"total": 123.0,
 "last_seen": "2026-10-09"
 }
 },
@@ -25678,6 +25930,10 @@
 "800765157290": {
 "total": 775.73,
 "last_seen": "2026-10-07"
+},
+"940001902483": {
+"total": 744.25,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Base Set|Unlimited|Standard|Mewtwo|PSA 7": {
@@ -26244,6 +26500,10 @@
 "147588339626": {
 "total": 1814.18,
 "last_seen": "2026-10-06"
+},
+"307223035730": {
+"total": 1283.69,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Jungle|Unlimited|Standard|Scyther|PSA 4": {
@@ -26532,6 +26792,10 @@
 "377556690523": {
 "total": 511.39,
 "last_seen": "2026-10-09"
+},
+"307223318306": {
+"total": 511.39,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Fossil|Unlimited|Standard|Zapdos|PSA 10": {
@@ -26790,12 +27054,20 @@
 "336834606163": {
 "total": 879.96,
 "last_seen": "2026-10-08"
+},
+"307223345634": {
+"total": 1013.08,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Team Rocket|Unlimited|Standard|Snorlax|PSA 9": {
 "168766060820": {
 "total": 250.23,
 "last_seen": "2026-10-08"
+},
+"168781652220": {
+"total": 447.56,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Gym|Unlimited|Standard|Giovanni's Gyarados|PSA 10": {
@@ -27244,6 +27516,10 @@
 "298732603480": {
 "total": 186.6,
 "last_seen": "2026-10-06"
+},
+"920024497154": {
+"total": 249.77,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Gym|Unlimited|Standard|Chansey|PSA 10": {
@@ -27385,6 +27661,10 @@
 },
 "860026109088": {
 "total": 213.65,
+"last_seen": "2026-10-09"
+},
+"407275178260": {
+"total": 197.43,
 "last_seen": "2026-10-09"
 }
 },
@@ -27834,7 +28114,7 @@
 },
 "JP|Neo Revelation|Unlimited|Standard|Houndoom|PSA 10": {
 "820064796106": {
-"total": 2562.16,
+"total": 2563.06,
 "last_seen": "2026-10-09"
 },
 "168316425239": {
@@ -27846,7 +28126,7 @@
 "last_seen": "2026-10-09"
 },
 "820208246807": {
-"total": 2796.84,
+"total": 2794.82,
 "last_seen": "2026-10-09"
 }
 },
@@ -28008,7 +28288,7 @@
 "last_seen": "2026-10-09"
 },
 "287274403096": {
-"total": 720.16,
+"total": 846.56,
 "last_seen": "2026-10-09"
 },
 "366644320016": {
@@ -28021,6 +28301,10 @@
 },
 "800773805371": {
 "total": 1049.94,
+"last_seen": "2026-10-09"
+},
+"407278933544": {
+"total": 2472.71,
 "last_seen": "2026-10-09"
 }
 },
@@ -28090,7 +28374,7 @@
 },
 "JP|Neo|Unlimited|Standard|Blissey|PSA 10": {
 "287274387694": {
-"total": 562.16,
+"total": 625.36,
 "last_seen": "2026-10-09"
 }
 },
@@ -28190,7 +28474,7 @@
 "last_seen": "2026-10-09"
 },
 "407276244853": {
-"total": 397.77,
+"total": 397.5,
 "last_seen": "2026-10-09"
 }
 },
@@ -28448,7 +28732,7 @@
 },
 "JP|Neo|Unlimited|Standard|Light Arcanine|PSA 9": {
 "407075611808": {
-"total": 467.39,
+"total": 445.26,
 "last_seen": "2026-10-09"
 },
 "306987233434": {
@@ -28767,6 +29051,10 @@
 "JP|No Rarity (JP)|Unlimited|Standard|Raichu|PSA 3": {
 "117446170077": {
 "total": 654.31,
+"last_seen": "2026-10-09"
+},
+"800776188076": {
+"total": 564.44,
 "last_seen": "2026-10-09"
 }
 },
@@ -29360,7 +29648,7 @@
 "last_seen": "2026-10-09"
 },
 "407275948540": {
-"total": 268.01,
+"total": 268.4,
 "last_seen": "2026-10-09"
 },
 "800773769585": {
@@ -29574,6 +29862,10 @@
 "307209041812": {
 "total": 240.77,
 "last_seen": "2026-10-09"
+},
+"860026877430": {
+"total": 227.12,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Revelation|Unlimited|Promo/Special|Ho-Oh|PSA 2": {
@@ -29760,6 +30052,10 @@
 "227554375736": {
 "total": 655.63,
 "last_seen": "2026-10-08"
+},
+"227560015888": {
+"total": 833.26,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo Genesis|Unlimited|Standard|Togetic|PSA 8": {
@@ -29871,6 +30167,10 @@
 },
 "227390512553": {
 "total": 133.1,
+"last_seen": "2026-10-09"
+},
+"327396758444": {
+"total": 114.91,
 "last_seen": "2026-10-09"
 }
 },
@@ -30162,6 +30462,10 @@
 "800242529714": {
 "total": 69.06,
 "last_seen": "2026-10-09"
+},
+"407228576569": {
+"total": 94.84,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo Genesis|Unlimited|Standard|Ampharos|PSA 10": {
@@ -30225,6 +30529,10 @@
 "JP|Neo Genesis|Unlimited|Standard|Meganium|PSA 9": {
 "198445694114": {
 "total": 104.12,
+"last_seen": "2026-10-09"
+},
+"407225928975": {
+"total": 164.77,
 "last_seen": "2026-10-09"
 }
 },
@@ -30295,6 +30603,10 @@
 },
 "206612938147": {
 "total": 141.97,
+"last_seen": "2026-10-09"
+},
+"237116606678": {
+"total": 132.88,
 "last_seen": "2026-10-09"
 }
 },
@@ -30500,6 +30812,10 @@
 "800763718515": {
 "total": 1337.96,
 "last_seen": "2026-10-07"
+},
+"206614880714": {
+"total": 267.74,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Fossil|Unlimited|Standard|Lapras|PSA 6": {
@@ -30614,6 +30930,10 @@
 "960039235854": {
 "total": 474.53,
 "last_seen": "2026-10-09"
+},
+"336837272556": {
+"total": 789.2,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Team Rocket|Unlimited|Standard|Dark Hypno|PSA 7": {
@@ -30648,7 +30968,7 @@
 },
 "EN|Gym Challenge|Unlimited|Standard|Misty's Golduck|PSA 7": {
 "960021361425": {
-"total": 564.44,
+"total": 474.53,
 "last_seen": "2026-10-09"
 }
 },
@@ -31322,6 +31642,10 @@
 "860012348387": {
 "total": 179.55,
 "last_seen": "2026-10-09"
+},
+"327396732755": {
+"total": 227.29,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Genesis|1st Ed|Standard|Pikachu|PSA 7": {
@@ -31592,7 +31916,7 @@
 },
 "JP|Vending/Promo (JP)|Unlimited|Promo/Special|Aerodactyl|PSA 10": {
 "407271929836": {
-"total": 1238.74,
+"total": 1193.79,
 "last_seen": "2026-10-09"
 }
 },
@@ -31672,6 +31996,10 @@
 "298738773366": {
 "total": 293.82,
 "last_seen": "2026-10-07"
+},
+"117456723632": {
+"total": 402.61,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Genesis|1st Ed|Standard|Pikachu|PSA 9": {
@@ -31772,6 +32100,10 @@
 "206609860321": {
 "total": 163.56,
 "last_seen": "2026-10-09"
+},
+"860027104809": {
+"total": 192.52,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Gym|Unlimited|Standard|Pikachu|PSA 10": {
@@ -31832,6 +32164,14 @@
 "407272399392": {
 "total": 407.89,
 "last_seen": "2026-10-09"
+},
+"920024810316": {
+"total": 717.27,
+"last_seen": "2026-10-09"
+},
+"920024808054": {
+"total": 744.25,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set|Unlimited|Standard|Poliwrath|PSA 7": {
@@ -31869,6 +32209,10 @@
 },
 "820216574015": {
 "total": 614.88,
+"last_seen": "2026-10-09"
+},
+"147627932765": {
+"total": 474.53,
 "last_seen": "2026-10-09"
 }
 },
@@ -31973,6 +32317,10 @@
 },
 "227559887070": {
 "total": 83.44,
+"last_seen": "2026-10-09"
+},
+"117457008605": {
+"total": 249.77,
 "last_seen": "2026-10-09"
 }
 },
@@ -32079,6 +32427,10 @@
 },
 "366718989988": {
 "total": 137.39,
+"last_seen": "2026-10-09"
+},
+"860027264040": {
+"total": 141.88,
 "last_seen": "2026-10-09"
 }
 },
@@ -32216,6 +32568,10 @@
 "206608446125": {
 "total": 197.63,
 "last_seen": "2026-10-07"
+},
+"227559972875": {
+"total": 294.71,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Team Rocket|Unlimited|Standard|Rocket's Zapdos|PSA 8": {
@@ -32384,6 +32740,10 @@
 "336836926032": {
 "total": 105.01,
 "last_seen": "2026-10-09"
+},
+"820221157736": {
+"total": 176.84,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set|Unlimited|Standard|Clefairy|PSA 5": {
@@ -32456,6 +32816,10 @@
 "178564762215": {
 "total": 59.76,
 "last_seen": "2026-10-09"
+},
+"820221849833": {
+"total": 163.56,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Jungle|Unlimited|Standard|Snorlax|PSA 3": {
@@ -32505,6 +32869,10 @@
 "EN|Jungle|Unlimited|Standard|Pikachu|PSA 3": {
 "860018772542": {
 "total": 110.01,
+"last_seen": "2026-10-09"
+},
+"900001497155": {
+"total": 69.95,
 "last_seen": "2026-10-09"
 }
 },
@@ -32703,6 +33071,10 @@
 "EN|Gym Challenge|1st Ed|Standard|Misty's Gyarados|PSA 9": {
 "298740760921": {
 "total": 2722.19,
+"last_seen": "2026-10-09"
+},
+"800774867711": {
+"total": 2174.98,
 "last_seen": "2026-10-09"
 }
 },
@@ -32922,6 +33294,14 @@
 "880000081060": {
 "total": 1315.17,
 "last_seen": "2026-10-09"
+},
+"880002188805": {
+"total": 1314.43,
+"last_seen": "2026-10-09"
+},
+"880001719376": {
+"total": 1323.44,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo Premium File|Unlimited|Promo/Special|Lugia|PSA 9": {
@@ -32966,7 +33346,7 @@
 "last_seen": "2026-10-08"
 },
 "820208230268": {
-"total": 1702.21,
+"total": 1700.19,
 "last_seen": "2026-10-09"
 }
 },
@@ -33005,6 +33385,10 @@
 },
 "206613107497": {
 "total": 114.44,
+"last_seen": "2026-10-09"
+},
+"237116353572": {
+"total": 110.4,
 "last_seen": "2026-10-09"
 }
 },
@@ -33282,6 +33666,10 @@
 "206613107494": {
 "total": 128.21,
 "last_seen": "2026-10-09"
+},
+"168781546386": {
+"total": 96.36,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Base Set 2|Unlimited|Standard|Wigglytuff|PSA 8": {
@@ -33353,6 +33741,10 @@
 },
 "117454759730": {
 "total": 366.6,
+"last_seen": "2026-10-09"
+},
+"900001406813": {
+"total": 348.62,
 "last_seen": "2026-10-09"
 }
 },
@@ -33489,6 +33881,10 @@
 "EN|Neo Genesis|1st Ed|Standard|Feraligatr|PSA 8": {
 "820211491717": {
 "total": 795.12,
+"last_seen": "2026-10-09"
+},
+"227560070815": {
+"total": 614.78,
 "last_seen": "2026-10-09"
 }
 },
@@ -33665,6 +34061,10 @@
 "EN|Jungle|1st Ed|Standard|Pikachu|PSA 7": {
 "800771404866": {
 "total": 88.06,
+"last_seen": "2026-10-09"
+},
+"117457332515": {
+"total": 164.36,
 "last_seen": "2026-10-09"
 }
 },
@@ -33846,6 +34246,10 @@
 "278445781303": {
 "total": 87.93,
 "last_seen": "2026-10-09"
+},
+"900001257440": {
+"total": 105.91,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Neo Genesis|Unlimited|Promo/Special|Meganium|PSA 10": {
@@ -33995,6 +34399,10 @@
 },
 "860024520316": {
 "total": 159.85,
+"last_seen": "2026-10-09"
+},
+"860027223979": {
+"total": 114.01,
 "last_seen": "2026-10-09"
 }
 },
@@ -34225,6 +34633,10 @@
 "EN|Team Rocket|1st Ed|Standard|Flareon|PSA 10": {
 "237114597452": {
 "total": 925.9,
+"last_seen": "2026-10-09"
+},
+"820221258925": {
+"total": 744.25,
 "last_seen": "2026-10-09"
 }
 },
@@ -34500,10 +34912,22 @@
 "227558758888": {
 "total": 150.87,
 "last_seen": "2026-10-09"
+},
+"117457328194": {
+"total": 137.39,
+"last_seen": "2026-10-09"
+},
+"880001924518": {
+"total": 186.82,
+"last_seen": "2026-10-09"
 }
 },
 "JP|Gym|Unlimited|Standard|Koga's Ditto|PSA 9": {
 "117455604563": {
+"total": 159.86,
+"last_seen": "2026-10-09"
+},
+"117457034772": {
 "total": 159.86,
 "last_seen": "2026-10-09"
 }
@@ -34517,6 +34941,10 @@
 "JP|Gym|Unlimited|Standard|Blaine's Charizard|PSA 1": {
 "307221491282": {
 "total": 227.24,
+"last_seen": "2026-10-09"
+},
+"117457311771": {
+"total": 204.81,
 "last_seen": "2026-10-09"
 }
 },
@@ -34684,6 +35112,10 @@
 "227559030379": {
 "total": 564.43,
 "last_seen": "2026-10-09"
+},
+"128125029586": {
+"total": 1510.23,
+"last_seen": "2026-10-09"
 }
 },
 "EN|Neo Destiny|Unlimited|Standard|Jolteon|PSA 8": {
@@ -34844,7 +35276,7 @@
 },
 "EN|Base Set|Unlimited|Standard|Venusaur|PSA 8": {
 "168781201420": {
-"total": 330.68,
+"total": 294.72,
 "last_seen": "2026-10-09"
 }
 },
@@ -34869,6 +35301,10 @@
 "EN|Base Set|Unlimited|Standard|Chansey|PSA 6": {
 "860026007641": {
 "total": 104.2,
+"last_seen": "2026-10-09"
+},
+"920024157366": {
+"total": 78.94,
 "last_seen": "2026-10-09"
 }
 },
@@ -35149,6 +35585,248 @@
 "JP|Vending/Promo (JP)|Unlimited|Promo/Special|Charizard|PSA 8": {
 "168779900920": {
 "total": 1175.81,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Base Set|Unlimited|Standard|Gyarados|PSA 8": {
+"327396755638": {
+"total": 195.82,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Base Set|Unlimited|Standard|Zapdos|PSA 8": {
+"327396722616": {
+"total": 114.91,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Base Set|Unlimited|Standard|Charizard|PSA 2": {
+"327396705578": {
+"total": 294.72,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Base Set|Unlimited|Standard|Hitmonchan|PSA 7": {
+"820221417562": {
+"total": 69.95,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Base Set|Unlimited|Standard|Gyarados|PSA 7": {
+"206614623750": {
+"total": 87.93,
+"last_seen": "2026-10-09"
+},
+"820221157706": {
+"total": 167.84,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Base Set|Unlimited|Standard|Charizard|PSA 9": {
+"237116458133": {
+"total": 1183.14,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Base Set 2|Unlimited|Standard|Charizard|PSA 2": {
+"840003817439": {
+"total": 294.71,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|Unlimited|Standard|Vaporeon|PSA 10": {
+"960044915805": {
+"total": 1675.26,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|1st Ed|Standard|Snorlax|PSA 6": {
+"307223299539": {
+"total": 374.73,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|Unlimited|Standard|Pikachu|PSA 6": {
+"900001497164": {
+"total": 69.95,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|Unlimited|Standard|Pikachu|PSA 4": {
+"900001497141": {
+"total": 69.95,
+"last_seen": "2026-10-09"
+},
+"117457243941": {
+"total": 69.95,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|Unlimited|Standard|Clefable|PSA 10": {
+"900001231421": {
+"total": 474.53,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Jungle|1st Ed|Standard|Vileplume|PSA 9": {
+"117457002843": {
+"total": 96.88,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Fossil|1st Ed|Promo/Special|Aerodactyl|PSA 5": {
+"227560238547": {
+"total": 87.93,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Fossil|Unlimited|Standard|Raichu|PSA 4": {
+"920024887258": {
+"total": 240.77,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Fossil|Unlimited|Standard|Moltres|PSA 7": {
+"327396741041": {
+"total": 69.95,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|Unlimited|Standard|Dark Gyarados|PSA 9": {
+"880002081752": {
+"total": 339.67,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|1st Ed|Standard|Dark Alakazam|PSA 8": {
+"117457284432": {
+"total": 243.92,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|Unlimited|Standard|Dark Blastoise|PSA 6": {
+"840003817430": {
+"total": 402.6,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|1st Ed|Standard|Dark Charizard|PSA 5": {
+"900001253398": {
+"total": 227.29,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|1st Ed|Standard|Jolteon|PSA 10": {
+"820221252213": {
+"total": 834.16,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Team Rocket|1st Ed|Standard|Dark Slowbro|PSA 6": {
+"820221157713": {
+"total": 149.86,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Gym Heroes|1st Ed|Standard|Lt. Surge's Electabuzz|PSA 8": {
+"860027399045": {
+"total": 231.78,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Gym|Unlimited|Standard|Raichu|PSA 9": {
+"920024228559": {
+"total": 347.77,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Gym Challenge|1st Ed|Standard|Blaine's Arcanine|PSA 6": {
+"168781295902": {
+"total": 375.63,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Gym Challenge|1st Ed|Standard|Ninetales|PSA 7": {
+"820221931340": {
+"total": 227.29,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Gym Challenge|Unlimited|Standard|Mr. Mime|PSA 8": {
+"860026578342": {
+"total": 55.23,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Gym Challenge|1st Ed|Standard|Ninetales|PSA 9": {
+"960042477440": {
+"total": 159.85,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Neo Revelation|Unlimited|Standard|Raikou|PSA 1": {
+"840003870448": {
+"total": 265.15,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Neo Revelation|Unlimited|Standard|Crobat|PSA 9": {
+"178568303637": {
+"total": 834.15,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Neo Revelation|Unlimited|Standard|Suicune|PSA 10": {
+"377515336057": {
+"total": 1758.67,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Neo Destiny|Unlimited|Standard|Dark Feraligatr|PSA 8": {
+"860027513279": {
+"total": 321.69,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Neo Destiny|Unlimited|Standard|Jolteon|PSA 9": {
+"860027510061": {
+"total": 429.58,
+"last_seen": "2026-10-09"
+}
+},
+"EN|Neo Destiny|1st Ed|Standard|Shining Noctowl|PSA 9": {
+"117457308258": {
+"total": 2721.3,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Gym|Unlimited|Standard|Brock's Ninetales|PSA 10": {
+"117457027416": {
+"total": 699.3,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Neo Discovery|Unlimited|Promo/Special|Umbreon|PSA 10": {
+"287637131762": {
+"total": 1054.89,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Neo Premium File|Unlimited|Promo/Special|Celebi|PSA 8": {
+"407279142088": {
+"total": 223.69,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Vending/Promo (JP)|Unlimited|Promo/Special|Pichu|PSA 9": {
+"920024225390": {
+"total": 1401.47,
+"last_seen": "2026-10-09"
+}
+},
+"JP|Vending/Promo (JP)|Unlimited|Promo/Special|Pikachu|PSA 1": {
+"820221159940": {
+"total": 313.51,
 "last_seen": "2026-10-09"
 }
 }
