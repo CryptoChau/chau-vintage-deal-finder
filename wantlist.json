@@ -213,6 +213,153 @@
       "ref_eur": 19.46,
       "post_up_to_ratio": 1.7,
       "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Boosters/Paldean-Fates-Booster"
+    },
+    {
+      "id": "xy-evolutions-booster-pack",
+      "name": "XY Evolutions Booster Pack (EN)",
+      "sealed": true,
+      "swiss_first": 2,
+      "queries": [
+        "pokemon xy evolutions booster pack sealed",
+        "pokemon evolutions booster pack 2016",
+        "pokemon xy evolutions booster pack"
+      ],
+      "match": "xy\\s*-?\\s*evolutions|(?<!prismatic )(?<!mega )\\bevolutions\\b",
+      "require": "booster|\\bpack\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|prismatic|mega\\s*evolution|sword|swsh|scarlet|\\bsv\\d|\\bsm\\d|sun\\s*&?\\s*(and\\s*)?moon|black\\s*&?\\s*white|heartgold|deoxys|evolving\\s*skies|dollar\\s*tree|\\b(3|5)\\s*cards?\\b|deluxe|evolution\\s*pack|japan|japanisch|jpn|\\bjp\\b|bundle|display|box\\b|case\\b|karton|\\b\\d+\\s*x\\b|\\bx\\s*\\d+|\\blot\\b|10\\s*packs?|36\\s*packs?",
+      "ref_eur": 67.41,
+      "post_up_to_ratio": 1.4,
+      "min_chf": 30,
+      "langs": [
+        "EN"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Boosters/Evolutions-Booster"
+    },
+    {
+      "id": "xy-evolutions-display",
+      "name": "XY Evolutions Booster Box / Display (EN)",
+      "sealed": true,
+      "swiss_first": 2,
+      "queries": [
+        "pokemon xy evolutions booster box sealed",
+        "pokemon xy evolutions display 36 packs",
+        "pokemon evolutions booster box factory sealed"
+      ],
+      "match": "xy\\s*-?\\s*evolutions|(?<!prismatic )(?<!mega )\\bevolutions\\b",
+      "require": "\\b(box|display|case)\\b|36\\s*packs?|booster\\s*box",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|prismatic|mega\\s*evolution|sword|swsh|scarlet|\\bsv\\d|\\bsm\\d|sun\\s*&?\\s*(and\\s*)?moon|black\\s*&?\\s*white|heartgold|deoxys|evolving\\s*skies|dollar\\s*tree|\\b(3|5)\\s*cards?\\b|deluxe|evolution\\s*pack|japan|japanisch|jpn|\\bjp\\b|booster\\s*pack\\b|single|einzel|bundle|\\b1\\s*pack",
+      "ref_eur": 2490.69,
+      "post_up_to_ratio": 1.2,
+      "min_chf": 1000,
+      "langs": [
+        "EN"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Evolutions-Booster-Box"
+    },
+    {
+      "id": "151-en-booster-pack",
+      "name": "Pokémon 151 (SV3.5) Booster Pack (EN)",
+      "sealed": true,
+      "swiss_first": 3,
+      "queries": [
+        "pokemon 151 booster pack sealed english",
+        "pokemon scarlet violet 151 booster pack",
+        "pokemon 151 booster pack sv3.5"
+      ],
+      "match": "\\b151\\b|\\bsv\\s*3\\.?5\\b",
+      "require": "booster\\s*pack|boosterpack|sleeved\\s*booster|\\bpack\\b|booster\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|bundle|display|case\\b|\\bbox\\b|karton|\\d+\\s*x\\b|\\bx\\s*\\d+|\\blot\\b|korean|japan|japanisch|jpn|\\bjp\\b|sv2a|chinese",
+      "ref_eur": 25.23,
+      "post_up_to_ratio": 1.5,
+      "min_chf": 10,
+      "langs": [
+        "EN"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Boosters/151-Booster"
+    },
+    {
+      "id": "151-en-booster-bundle",
+      "name": "Pokémon 151 (SV3.5) Booster Bundle (EN)",
+      "sealed": true,
+      "swiss_first": 3,
+      "queries": [
+        "pokemon 151 booster bundle sealed",
+        "pokemon scarlet violet 151 booster bundle",
+        "pokemon 151 bundle english"
+      ],
+      "match": "\\b151\\b|\\bsv\\s*3\\.?5\\b",
+      "require": "bundle",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|display|case\\b|karton|\\b10\\s*bundles?|\\b6\\s*bundles?|\\b6\\s*x\\b|\\bx\\s*6\\b|japan|japanisch|jpn|\\bjp\\b|sv2a",
+      "ref_eur": 149.66,
+      "post_up_to_ratio": 1.2,
+      "min_chf": 60,
+      "langs": [
+        "EN"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/151-Booster-Bundle"
+    },
+    {
+      "id": "151-en-bundle-display",
+      "name": "Pokémon 151 (SV3.5) Booster Bundle Display (EN)",
+      "sealed": true,
+      "swiss_first": 2,
+      "queries": [
+        "pokemon 151 booster bundle display sealed",
+        "pokemon scarlet violet 151 bundle display",
+        "pokemon 151 display english"
+      ],
+      "match": "\\b151\\b|\\bsv\\s*3\\.?5\\b",
+      "require": "display|\\bcase\\b|\\b10\\s*bundles?|\\b6\\s*bundles?|booster\\s*box|\\bbox\\b",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|booster\\s*pack\\b|single|einzel|japan|japanisch|jpn|\\bjp\\b|sv2a",
+      "ref_eur": 1927.09,
+      "post_up_to_ratio": 1.2,
+      "min_chf": 800,
+      "langs": [
+        "EN"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/151-Booster-Bundle-Display"
+    },
+    {
+      "id": "151-jp-booster-pack",
+      "name": "Pokémon Card 151 (JP, sv2a) Booster Pack",
+      "sealed": true,
+      "swiss_first": 3,
+      "queries": [
+        "pokemon card 151 booster pack japanese sv2a",
+        "pokemon 151 japanese booster pack sealed",
+        "pokemon 151 japanisch booster pack"
+      ],
+      "match": "\\b151\\b|\\bsv\\s*3\\.?5\\b|sv2a",
+      "require": "japan|japanisch|jpn|\\bjp\\b|sv2a|ポケモンカード\\s*151",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|bundle|display|case\\b|\\bbox\\b|karton|\\d+\\s*x\\b|\\bx\\s*\\d+|\\blot\\b|korean|chinese",
+      "ref_eur": 11.72,
+      "post_up_to_ratio": 1.8,
+      "min_chf": 4,
+      "langs": [
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Boosters/Pokemon-Card-151-Booster"
+    },
+    {
+      "id": "151-jp-booster-box",
+      "name": "Pokémon Card 151 (JP, sv2a) Booster Box / Display",
+      "sealed": true,
+      "swiss_first": 2,
+      "queries": [
+        "pokemon card 151 booster box japanese sealed",
+        "pokemon 151 japanese booster box sv2a",
+        "pokemon 151 japanisch display"
+      ],
+      "match": "\\b151\\b|\\bsv\\s*3\\.?5\\b|sv2a",
+      "require": "japan|japanisch|jpn|\\bjp\\b|sv2a|ポケモンカード\\s*151",
+      "reject": "\\b(psa|cgc|bgs)\\b|korea|chinese|chinesisch|code\\b|codes\\b|\\b\\d{1,3}\\s*/\\s*\\d{2,3}\\b|pack\\s*fresh|fresh\\s*pack|boosterfrisch|reverse|holo\\b|\\betb\\b|elite|top.?trainer|\\btin\\b|mini\\s*tin|blister|binder|premium|collection|kollektion|playmat|sleeve|poster|\\bpin\\b|leer|empty|opened|geöffnet|geoeffnet|upc|ex\\s*bundle|double\\s*rare|komplett|complete|lenticular|jumbo|protector|shiny\\s*bundle|\\(\\s*x\\s*\\d+\\s*\\)|\\b3\\s*pk\\b|ebay\\s*live|mystery|bubble\\s*mew|you\\s*pick|pick\\s*your|random|zufall|booster\\s*pack\\b|single|einzel|korean|chinese|bundle|\\b1\\s*pack|case\\b|karton",
+      "ref_eur": 234.27,
+      "post_up_to_ratio": 1.2,
+      "min_chf": 100,
+      "langs": [
+        "JP"
+      ],
+      "cardmarket": "https://www.cardmarket.com/de/Pokemon/Products/Booster-Boxes/Pokemon-Card-151-Booster-Box"
     }
   ]
 }
