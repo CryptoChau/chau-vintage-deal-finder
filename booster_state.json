@@ -22,12 +22,14 @@
 "ebay:147057469471": "2026-10-01",
 "ebay:800671121926": "2026-10-06",
 "ebay:178492401692": "2026-10-10",
-"ebay:318512409397": "2026-10-14"
+"ebay:318512409397": "2026-10-14",
+"ebay:155795015850": "2026-10-16",
+"ebay:147239551177": "2026-10-16"
 },
 "history": {
 "EN|Base Set": {
 "ebay:137204342107": {
-"total": 755.21,
+"total": 752.02,
 "last_seen": "2026-10-16"
 },
 "ricardo:1328350796": {
@@ -39,17 +41,17 @@
 "last_seen": "2026-10-15"
 },
 "ebay:318942254533": {
-"total": 704.86,
+"total": 701.88,
 "last_seen": "2026-10-16"
 },
 "ebay:336684954945": {
-"total": 738.24,
+"total": 735.53,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Neo Discovery": {
 "ebay:127847546267": {
-"total": 503.47,
+"total": 501.34,
 "last_seen": "2026-10-16"
 },
 "ebay:116916191425": {
@@ -59,28 +61,28 @@
 },
 "EN|151": {
 "ebay:398250468147": {
-"total": 99.13,
+"total": 98.77,
 "last_seen": "2026-10-16"
 },
 "ebay:236095279301": {
-"total": 860.29,
+"total": 856.65,
 "last_seen": "2026-10-16"
 },
 "ebay:178061073336": {
-"total": 28.31,
+"total": 27.82,
 "last_seen": "2026-10-16"
 },
 "ebay:178197560683": {
-"total": 31.46,
+"total": 30.92,
 "last_seen": "2026-10-16"
 },
 "ricardo:1326825530": {
 "total": 36.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1327905872": {
 "total": 13.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1330565966": {
 "total": 33.0,
@@ -107,27 +109,27 @@
 "last_seen": "2026-10-14"
 },
 "ebay:800739850117": {
-"total": 4.76,
+"total": 4.74,
 "last_seen": "2026-10-16"
 },
 "ebay:800765653792": {
-"total": 33.83,
+"total": 33.63,
 "last_seen": "2026-10-16"
 }
 },
 "JP|Jungle": {
 "ebay:403204395889": {
-"total": 201.39,
+"total": 200.54,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Evolving Skies": {
 "ebay:267769969748": {
-"total": 44.05,
+"total": 43.89,
 "last_seen": "2026-10-16"
 },
 "ebay:178318746940": {
-"total": 57.51,
+"total": 57.3,
 "last_seen": "2026-10-16"
 },
 "ricardo:1330597056": {
@@ -136,18 +138,18 @@
 },
 "ricardo:1300525330": {
 "total": 68.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1324664624": {
 "total": 97.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ebay:298732451648": {
 "total": 197.53,
 "last_seen": "2026-10-04"
 },
 "ebay:318512409397": {
-"total": 5.51,
+"total": 5.49,
 "last_seen": "2026-10-16"
 }
 },
@@ -163,12 +165,12 @@
 },
 "EN|Gym Heroes": {
 "ebay:267711135251": {
-"total": 905.25,
+"total": 901.42,
 "last_seen": "2026-10-16"
 },
 "ricardo:1332114024": {
 "total": 683.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 }
 },
 "EN|Paldean Fates": {
@@ -179,21 +181,21 @@
 },
 "EN|Prismatic Evolutions": {
 "ebay:800637707584": {
-"total": 25.98,
+"total": 25.82,
 "last_seen": "2026-10-16"
 },
 "ebay:147239614180": {
-"total": 16.52,
+"total": 16.46,
 "last_seen": "2026-10-16"
 },
 "ebay:800720442019": {
-"total": 13.08,
+"total": 13.02,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Destined Rivals": {
 "ebay:198666175124": {
-"total": 8.13,
+"total": 8.1,
 "last_seen": "2026-10-16"
 },
 "ebay:800637707155": {
@@ -201,7 +203,7 @@
 "last_seen": "2026-10-16"
 },
 "ebay:147239620371": {
-"total": 20.31,
+"total": 20.24,
 "last_seen": "2026-10-16"
 },
 "ricardo:1326658940": {
@@ -214,7 +216,7 @@
 },
 "ricardo:1324835940": {
 "total": 17.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1326658986": {
 "total": 38.0,
@@ -229,13 +231,13 @@
 "last_seen": "2026-10-12"
 },
 "ebay:287195381147": {
-"total": 13.04,
+"total": 12.99,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Journey Together": {
 "ebay:168574017599": {
-"total": 22.02,
+"total": 21.94,
 "last_seen": "2026-10-16"
 },
 "ebay:178251158141": {
@@ -243,54 +245,54 @@
 "last_seen": "2026-10-15"
 },
 "ebay:178251133067": {
-"total": 7.71,
+"total": 7.68,
 "last_seen": "2026-10-16"
 },
 "ebay:318321541143": {
-"total": 9.12,
+"total": 8.97,
 "last_seen": "2026-10-16"
 },
 "ebay:147239660043": {
-"total": 11.91,
+"total": 11.86,
 "last_seen": "2026-10-16"
 },
 "ebay:286954485646": {
-"total": 7.55,
+"total": 7.42,
 "last_seen": "2026-10-16"
 },
 "ricardo:1329984320": {
 "total": 15.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1285526192": {
 "total": 14.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ebay:800671121923": {
-"total": 8.33,
+"total": 8.3,
 "last_seen": "2026-10-16"
 },
 "ebay:287195381914": {
-"total": 9.46,
+"total": 9.43,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Surging Sparks": {
 "ebay:257562442219": {
-"total": 10.25,
-"last_seen": "2026-10-15"
+"total": 10.22,
+"last_seen": "2026-10-16"
 },
 "ebay:147210512947": {
-"total": 10.19,
-"last_seen": "2026-10-15"
+"total": 10.15,
+"last_seen": "2026-10-16"
 },
 "ebay:398011428465": {
-"total": 57.28,
-"last_seen": "2026-10-15"
+"total": 57.07,
+"last_seen": "2026-10-16"
 },
 "ebay:287197799138": {
-"total": 14.23,
-"last_seen": "2026-10-15"
+"total": 14.18,
+"last_seen": "2026-10-16"
 }
 },
 "EN|Temporal Forces": {
@@ -300,15 +302,15 @@
 },
 "ricardo:1329535300": {
 "total": 14.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1323241310": {
 "total": 34.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1277962076": {
 "total": 15.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ebay:178492401692": {
 "total": 13.08,
@@ -321,20 +323,20 @@
 },
 "EN|Paradox Rift": {
 "ebay:227328018845": {
-"total": 8.23,
+"total": 8.18,
 "last_seen": "2026-10-16"
 },
 "ebay:147057469471": {
-"total": 11.01,
+"total": 10.97,
 "last_seen": "2026-10-16"
 },
 "ricardo:1326701968": {
 "total": 17.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1326701822": {
 "total": 17.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1322973452": {
 "total": 30.0,
@@ -346,73 +348,77 @@
 },
 "ricardo:1277962074": {
 "total": 15.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 }
 },
 "EN|Obsidian Flames": {
 "ebay:227339433356": {
-"total": 12.12,
+"total": 12.07,
 "last_seen": "2026-10-16"
 },
 "ebay:227339416370": {
-"total": 12.12,
+"total": 12.07,
 "last_seen": "2026-10-16"
 },
 "ebay:177279549286": {
-"total": 88.12,
+"total": 87.8,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Astral Radiance": {
 "ebay:147239551177": {
-"total": 9.91,
+"total": 9.88,
 "last_seen": "2026-10-16"
 },
 "ebay:155795015850": {
-"total": 9.5,
+"total": 9.44,
 "last_seen": "2026-10-16"
 },
 "ricardo:1330187204": {
 "total": 16.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1279390276": {
 "total": 23.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
+},
+"ebay:287195472114": {
+"total": 14.18,
+"last_seen": "2026-10-16"
 }
 },
 "JP|Team Rocket": {
 "ricardo:1314867238": {
 "total": 15.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 }
 },
 "EN|Twilight Masquerade": {
 "ricardo:1329681254": {
 "total": 34.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ricardo:1323330122": {
 "total": 14.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ebay:117458704643": {
-"total": 110.15,
+"total": 109.74,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Celebrations": {
 "ricardo:1328646882": {
 "total": 43.0,
-"last_seen": "2026-10-15"
+"last_seen": "2026-10-16"
 },
 "ebay:158287472037": {
-"total": 34.6,
-"last_seen": "2026-10-15"
+"total": 34.01,
+"last_seen": "2026-10-16"
 },
 "ebay:168795026661": {
-"total": 697.27,
-"last_seen": "2026-10-15"
+"total": 692.96,
+"last_seen": "2026-10-16"
 }
 },
 "EN|Jungle": {
@@ -423,14 +429,14 @@
 },
 "JP|Evolving Skies": {
 "ebay:157770780827": {
-"total": 25.16,
+"total": 24.73,
 "last_seen": "2026-10-16"
 }
 },
 "EN|Team Rocket": {
 "ebay:287195472630": {
-"total": 4.11,
-"last_seen": "2026-10-15"
+"total": 4.09,
+"last_seen": "2026-10-16"
 }
 }
 }
