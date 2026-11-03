@@ -156,7 +156,7 @@
 },
 "ricardo:1300525330": {
 "total": 68.0,
-"last_seen": "2026-10-31"
+"last_seen": "2026-11-03"
 },
 "ricardo:1324664624": {
 "total": 97.0,
@@ -487,6 +487,10 @@
 "ebay:117458704643": {
 "total": 110.48,
 "last_seen": "2026-11-02"
+},
+"ricardo:1334485820": {
+"total": 34.0,
+"last_seen": "2026-11-03"
 }
 },
 "EN|Celebrations": {
@@ -525,7 +529,7 @@
 },
 "EN|Team Rocket": {
 "ebay:287195472630": {
-"total": 4.12,
+"total": 4.09,
 "last_seen": "2026-11-03"
 }
 }
