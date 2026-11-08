@@ -183,7 +183,7 @@ def visual_label_matches(ocr_text, card):
     return not reasons, reasons
 
 
-def apply_visual_slab_check(card, image_bytes=None):
+def apply_visual_slab_check(card, image_bytes=None, timeout=15):
     """Setzt slab_verified nur nach lesbarem, passendem Label im Foto.
 
     slab_cert_authenticated bleibt falsch. OCR belegt nicht, dass PSA
@@ -199,7 +199,7 @@ def apply_visual_slab_check(card, image_bytes=None):
     card["slab_check"] = "not-read"
     if image_bytes is None:
         try:
-            image_bytes = download_listing_photo(card.get("img") or "")
+            image_bytes = download_listing_photo(card.get("img") or "", timeout=timeout)
         except PhotoDownloadError as exc:
             reason = str(exc) if str(exc).startswith("slab-") else "slab-photo-download-fail"
             card["reasons"] = _uniq(reasons + [reason])

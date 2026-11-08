@@ -32,6 +32,7 @@ gestartet (lokal ausserhalb des Bildschirms, in der Cloud unter xvfb).
 import json
 import os
 import re
+import signal
 import statistics
 import sys
 import time
@@ -40,6 +41,7 @@ import urllib.request
 from datetime import datetime
 
 import deal_validation as dv
+import psa_runtime
 import vintage_deal_finder as v  # gemeinsame Erkennung und Verkaufspruefung
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -59,7 +61,12 @@ MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
 HISTORY_MAX_DAYS = 120  # so lange bleibt ein nicht mehr gesehenes Angebot als Preisreferenz erhalten
-FETCH_BUDGET_S = 1200   # Zeitbudget fuer alle eBay-Suchen (Rest wird im naechsten Lauf wieder erreicht)
+# Script-Budget liegt unter dem Workflow-Limit von 35 Minuten, damit Persistenz
+# noch laeuft. Die Suchliste bleibt voll; was nicht mehr passt, ist PARTIAL.
+RUN_BUDGET_S = int(os.environ.get("PSA_RUN_BUDGET_S", "1320"))
+VALIDATION_RESERVE_S = int(os.environ.get("PSA_VALIDATION_RESERVE_S", "480"))
+OCR_LIMIT = int(os.environ.get("PSA_OCR_LIMIT", "24"))
+OCR_DOWNLOAD_TIMEOUT_S = int(os.environ.get("PSA_OCR_TIMEOUT_S", "8"))
 
 # Suchen: die Suchbegriffe des rohen Bots, aber "holo" raus (PSA-Titel nennen es oft nicht) und
 # "psa" dazu. Gold Stars zuerst (hoechste Prioritaet), danach in Reihenfolge der Aeren.
@@ -108,28 +115,36 @@ MODERN_EXTRA = re.compile(
     re.I,
 )
 MAX_PER_KEY_PER_RUN = 2  # gleiche Karte (gleicher Schluessel) hoechstens 2x pro Lauf posten (kein Spam)
+_STOP = {"flag": False}
+
+
+def _request_stop(signum, frame):
+    _STOP["flag"] = True
+    log("Stop-Signal empfangen, Lauf endet nach dem aktuellen Schritt und schreibt den Stand")
 
 
 def log(msg):
     line = f"[{dv.zurich_stamp()}] {msg}"
-    print(line)
+    print(line, flush=True)
     with open(LOG_FILE, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
+        fh.flush()
 
 
-def fetch_all():
+def fetch_all(clock=None, stop=None):
     from playwright.sync_api import sync_playwright
     items = {}
+    done, skipped = [], []
     launch_args = ["--window-size=1280,900"]
     if os.name == "nt":
         launch_args.insert(0, "--window-position=-2400,-2400")
-    t0 = time.time()
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=False, args=launch_args)
         page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
-        for q in SEARCHES:
-            if time.time() - t0 > FETCH_BUDGET_S:
-                log("Zeitbudget fuer eBay-Suchen aufgebraucht, restliche Suchen im naechsten Lauf")
+        for index, q in enumerate(SEARCHES):
+            if (clock and not clock.search_open()) or (stop and stop()):
+                skipped = list(SEARCHES[index:])
+                log(f"PARTIAL Suche gestoppt nach {len(done)}/{len(SEARCHES)} Queries")
                 break
             url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
                    f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(MAX_TOTAL) + 60}&_ipg=240")
@@ -151,9 +166,14 @@ def fetch_all():
                     items[r["id"]] = r
                     new += 1
             log(f"'{q}': {len(rows)} Treffer, {new} neu")
+            done.append(q)
             time.sleep(1.0)
         browser.close()
-    return items
+    return items, {
+        "queries_done": done,
+        "queries_skipped_names": skipped,
+        "queries_total": len(SEARCHES),
+    }
 
 
 def classify(items):
@@ -246,10 +266,25 @@ def acquire_lock():
     return True
 
 
+def _stop_requested():
+    return _STOP["flag"]
+
+
+def _checker(card):
+    return dv.apply_visual_slab_check(card, timeout=OCR_DOWNLOAD_TIMEOUT_S)
+
+
+def _persist_progress(st):
+    if DRY_RUN:
+        return
+    save_state(st)
+
+
 def main():
     if not acquire_lock():
         log("Ein anderer Lauf ist bereits aktiv, abgebrochen.")
         return
+    signal.signal(signal.SIGTERM, _request_stop)
     try:
         webhook = os.environ.get("DISCORD_WEBHOOK_PSA") or ""
         if not webhook and not DRY_RUN and os.name == "nt":
@@ -259,54 +294,94 @@ def main():
         if not webhook and not DRY_RUN:
             log("Webhook DISCORD_WEBHOOK_PSA fehlt.")
             return
+        log("Hinweis: Ein frueherer Lauf ohne State-Commit (Actions 42450685226) beweist keine 0 Posts.")
         st = load_state()
         now = dv.zurich_now()
-        items = fetch_all()
+        clock = psa_runtime.RunClock(RUN_BUDGET_S, VALIDATION_RESERVE_S)
+        items, coverage = fetch_all(clock=clock, stop=_stop_requested)
+        log(f"Suche fertig: {len(coverage['queries_done'])}/{coverage['queries_total']} Queries, {len(items)} Angebote")
         cards = classify(items)
-        decisions, confirmed = v.resolve_deals(cards, now=now)
-        log(f"{len(items)} Angebote geladen, {len(cards)} PSA-klassifiziert, {len(confirmed)} bestaetigte Deals")
+        log(f"Klassifiziert {len(cards)} von {len(items)} Angeboten")
+
+        def _ocr_open():
+            return clock.validation_open() and not _stop_requested()
+
+        def _ocr_progress(done, total):
+            log(f"OCR {done}/{total}")
+
+        cards, ocr_stats = psa_runtime.apply_bounded_slab_checks(
+            cards, _checker, OCR_LIMIT, _ocr_open, on_progress=_ocr_progress,
+        )
+        log(
+            f"OCR attempted {ocr_stats['ocr_attempted']} matched {ocr_stats['ocr_matched']} "
+            f"skipped {ocr_stats['ocr_skipped']} eligible {ocr_stats['ocr_eligible']}"
+        )
+        decisions, confirmed = v.resolve_deals(
+            cards, now=now, should_stop=lambda: not clock.validation_open() or _stop_requested(),
+        )
         new = dv.select_new(confirmed, set(st.get("posted") or {}), per_key_cap=MAX_PER_KEY_PER_RUN, limit=MAX_POSTS_PER_RUN)
-        for d in decisions:
-            if d.get("status") == "confirmed":
-                log(f"  CONFIRMED {d.get('percent_below')}% CHF {d.get('all_in_chf'):.2f} n={d.get('n')} {d.get('key')} | {d.get('title','')[:70]}")
-            else:
-                log(f"  {d.get('status')} {'; '.join((d.get('reasons') or [])[:4])} | {(d.get('title') or '')[:70]}")
-        if DRY_RUN:
-            log(f"Dry-Run: {len(new)} bestaetigte Deals wuerden gepostet. Kein Discord, kein State.")
-            return
+        for deal in confirmed[:MAX_POSTS_PER_RUN]:
+            log(f"  QUALIFIED {deal.get('percent_below')}% CHF {deal.get('all_in_chf'):.2f} n={deal.get('n')} {deal.get('key')} | {deal.get('title','')[:70]}")
         sent = []
         post_error = None
-        if new:
+        if DRY_RUN:
+            log(f"Dry-Run: {len(new)} bestaetigte Deals wuerden gepostet. Kein Discord, kein State.")
+        elif _stop_requested() and not new:
+            log("Stop vor dem Post. Kein Discord.")
+        elif new and not _stop_requested():
             try:
                 sent = post_discord(webhook, new, now=now) or []
-            except Exception as e:
-                post_error = e
-                sent = list(getattr(e, "sent", None) or [])
-        else:
-            log("Keine qualifizierten Deals. Kein Discord-Post.")
-        today = now.strftime("%Y-%m-%d")
-        for c in cards:
-            st["seen"][c["id"]] = today
-        for d in sent:
-            st["posted"][d["id"]] = today
-        cutoff = now.timestamp() - 60 * 86400
-        def _fresh(mapping):
-            kept = {}
-            for k, val in (mapping or {}).items():
-                try:
-                    ts = datetime.strptime(val, "%Y-%m-%d").replace(tzinfo=dv.ZURICH).timestamp()
-                except Exception:
-                    continue
-                if ts > cutoff:
-                    kept[k] = val
-            return kept
-        st["seen"] = _fresh(st.get("seen"))
-        st["posted"] = _fresh(st.get("posted"))
-        update_history(st.get("history") or {}, cards)
-        save_state(st)
-        log(f"Geprueft {len(cards)}, qualifiziert {len(confirmed)}, gepostet {len(sent)}.")
+            except Exception as exc:
+                post_error = exc
+                sent = list(getattr(exc, "sent", None) or [])
+        elif not new:
+            log("Keine qualifizierten Deals in diesem Teil. Kein Discord-Post.")
+        summary = {
+            "partial": (
+                len(coverage["queries_done"]) < coverage["queries_total"]
+                or ocr_stats["ocr_skipped"] > 0
+                or ocr_stats["stopped_early"]
+                or _stop_requested()
+            ),
+            "queries_done": len(coverage["queries_done"]),
+            "queries_total": coverage["queries_total"],
+            "queries_skipped_names": coverage["queries_skipped_names"],
+            "listings": len(items),
+            "classified": len(cards),
+            "ocr_attempted": ocr_stats["ocr_attempted"],
+            "ocr_matched": ocr_stats["ocr_matched"],
+            "ocr_skipped": ocr_stats["ocr_skipped"],
+            "stopped_early": ocr_stats["stopped_early"] or _stop_requested(),
+            "sold_lookups": sum(1 for c in cards if c.get("needs_sold_lookup")),
+            "qualified": len(confirmed),
+            "posted": len(sent),
+            "rejected": psa_runtime.reason_counts(decisions),
+        }
+        log(psa_runtime.format_run_summary(summary))
         if post_error is not None:
             log(f"Discord-Fehler nach {len(sent)} erfolgreichen Posts, Rest nicht als posted markiert: {post_error}")
+        if not DRY_RUN:
+            today = now.strftime("%Y-%m-%d")
+            st = psa_runtime.record_delivery(st, [c["id"] for c in cards], [d["id"] for d in sent], summary, today)
+            cutoff = now.timestamp() - 60 * 86400
+
+            def _fresh(mapping):
+                kept = {}
+                for key, val in (mapping or {}).items():
+                    if key == "last_run":
+                        continue
+                    try:
+                        ts = datetime.strptime(val, "%Y-%m-%d").replace(tzinfo=dv.ZURICH).timestamp()
+                    except Exception:
+                        continue
+                    if ts > cutoff:
+                        kept[key] = val
+                return kept
+
+            st["seen"] = _fresh(st.get("seen"))
+            st["posted"] = _fresh(st.get("posted"))
+            update_history(st.get("history") or {}, cards)
+            _persist_progress(st)
     finally:
         try:
             os.remove(LOCK_FILE)

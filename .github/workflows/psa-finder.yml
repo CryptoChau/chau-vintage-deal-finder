@@ -51,13 +51,14 @@ jobs:
           # Script-Namen auf DISCORD_WEBHOOK_HOLO. Der Wert wird nicht ausgegeben.
           DISCORD_WEBHOOK_PSA: ${{ (github.event_name == 'workflow_dispatch' && inputs.post_to_vintage == true) && secrets.DISCORD_WEBHOOK_HOLO || secrets.DISCORD_WEBHOOK_PSA }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          PYTHONUNBUFFERED: "1"
         run: |
           ARGS=""
           if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi
           xvfb-run -a --server-args="-screen 0 1280x900x24" python psa_vintage_deal_finder.py $ARGS
 
       - name: Persist psa_state.json
-        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run != true }}
+        if: ${{ always() && (github.event_name != 'workflow_dispatch' || inputs.dry_run != true) }}
         run: |
           git config user.name "chau-deal-finder-bot"
           git config user.email "actions@users.noreply.github.com"

@@ -562,9 +562,10 @@ def parse_shipping(s):
 
 def log(msg):
     line = f"[{dv.zurich_stamp()}] {msg}"
-    print(line)
+    print(line, flush=True)
     with open(LOG_FILE, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
+        fh.flush()
 
 
 # ------------------------------------------------------- Haendler-Herkunft
@@ -615,7 +616,7 @@ def search_high(query, psa=False):
     return int(MAX_TOTAL) + 60
 
 
-def scrape_queries(page, queries, notes, sold=False, psa=False, attempts=2):
+def scrape_queries(page, queries, notes, sold=False, psa=False, attempts=2, goto_timeout=45000):
     """Oeffentliche eBay.ch-Suche. `sold=True` ist die normale Verkaufssuche
     (LH_Sold), kein undokumentierter Endpunkt."""
     items = {}
@@ -633,7 +634,7 @@ def scrape_queries(page, queries, notes, sold=False, psa=False, attempts=2):
         error = None
         for attempt in range(attempts):
             try:
-                page.goto(url, timeout=45000, wait_until="domcontentloaded")
+                page.goto(url, timeout=goto_timeout, wait_until="domcontentloaded")
                 page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
                 try:
                     page_title = page.title() or ""
@@ -695,7 +696,7 @@ def sold_query_for(card):
     return " ".join(str(p) for p in parts if p)
 
 
-def fetch_sold_map(cards):
+def fetch_sold_map(cards, should_stop=None, goto_timeout=45000):
     """Eine oeffentliche Verkaufssuche je Identitaet, gedeckelt. Ergebnis sind
     geparste Zeilen, noch kein Median."""
     from playwright.sync_api import sync_playwright
@@ -707,9 +708,13 @@ def fetch_sold_map(cards):
         browser, page = _launch_browser(p)
         try:
             for card in cards:
+                if should_stop and should_stop():
+                    notes[card["key"]] = {"searched": False, "detail": "sold-lookup-skipped-partial"}
+                    log("PARTIAL Verkaufssuche abgebrochen, restliche Identitaeten nicht geladen")
+                    break
                 q = sold_query_for(card)
                 bucket_notes = []
-                rows = scrape_queries(page, [q], bucket_notes, sold=True, attempts=2)
+                rows = scrape_queries(page, [q], bucket_notes, sold=True, attempts=1 if should_stop else 2, goto_timeout=goto_timeout)
                 parsed = []
                 for raw in rows.values():
                     parsed_card = dv.parse_listing(raw, mode=card.get("mode") or "raw")
@@ -866,35 +871,42 @@ def post_discord(webhook, deals, now=None):
     return sent
 
 
-def cards_needing_solds(cards):
+def cards_needing_solds(cards, limit=None):
+    cap = dv.SOLD_LOOKUP_CAP if limit is None else limit
     out, seen = [], set()
-    for c in sorted(cards, key=lambda c: (c.get("tier", 9), c.get("key") or "")):
+    for c in sorted(cards, key=lambda c: (0 if (c.get("base") or "") == "bulbasaur" else 1, c.get("tier", 9), c.get("key") or "")):
         if not c.get("needs_sold_lookup") or c.get("key") in seen:
             continue
         seen.add(c["key"])
         out.append(c)
-        if len(out) >= dv.SOLD_LOOKUP_CAP:
+        if len(out) >= cap:
             break
     return out
 
 
-def resolve_deals(cards, solds_by_key=None, notes_by_key=None, now=None):
-    checked = []
-    for card in cards:
-        if card.get("mode") == "psa" and not card.get("drop"):
-            card = dv.apply_visual_slab_check(card)
-            if not dv.visual_slab_ok(card):
-                card["needs_sold_lookup"] = False
-        checked.append(card)
-    cards = checked
+def resolve_deals(cards, solds_by_key=None, notes_by_key=None, now=None, should_stop=None, sold_limit=None):
+    """Verkaufssuche nur fuer Karten, deren Slab-Check schon erledigt ist.
+
+    PSA-Fotos werden hier nicht mehr fuer die ganze Schlange geladen.
+    """
     if solds_by_key is None:
-        lookup = cards_needing_solds(cards)
-        capped = {c["key"] for c in lookup}
-        solds_by_key, fetched = fetch_sold_map(lookup) if lookup else ({}, {})
+        if should_stop and should_stop():
+            solds_by_key, fetched = {}, {}
+            for card in cards:
+                if card.get("needs_sold_lookup"):
+                    fetched[card["key"]] = {"searched": False, "detail": "sold-lookup-skipped-partial"}
+        else:
+            lookup = cards_needing_solds(cards, limit=sold_limit)
+            capped = {c["key"] for c in lookup}
+            timeout = 20000 if should_stop else 45000
+            solds_by_key, fetched = fetch_sold_map(lookup, should_stop=should_stop, goto_timeout=timeout) if lookup else ({}, {})
+            for card in lookup:
+                if card.get("key") not in fetched:
+                    fetched[card["key"]] = {"searched": False, "detail": "sold-lookup-skipped-partial"}
+            for card in cards:
+                if card.get("needs_sold_lookup") and card.get("key") not in capped and card.get("key") not in fetched:
+                    fetched[card["key"]] = {"searched": False, "detail": "sold-lookup-cap"}
         notes_by_key = dict(fetched)
-        for c in cards:
-            if c.get("needs_sold_lookup") and c.get("key") not in capped:
-                notes_by_key[c["key"]] = {"searched": False, "detail": "sold-lookup-cap"}
     return find_deals(cards, history=None, solds_by_key=solds_by_key or {}, now=now, notes_by_key=notes_by_key)
 
 

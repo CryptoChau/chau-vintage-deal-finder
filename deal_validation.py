@@ -960,8 +960,8 @@ def visual_slab_ok(card):
     )
 
 
-def apply_visual_slab_check(card, image_bytes=None):
-    return slab_label.apply_visual_slab_check(card, image_bytes=image_bytes)
+def apply_visual_slab_check(card, image_bytes=None, timeout=15):
+    return slab_label.apply_visual_slab_check(card, image_bytes=image_bytes, timeout=timeout)
 
 
 def discord_description(d, now=None):
