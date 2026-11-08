@@ -65,19 +65,6 @@ jobs:
         run: |
           git config user.name "chau-deal-finder-bot"
           git config user.email "actions@users.noreply.github.com"
-          cp deal_state.json /tmp/state_fresh.json 2>/dev/null || true
-          git add deal_state.json 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "Update state [skip ci]"
-          for i in 1 2 3 4 5; do
-            if git push; then
-              exit 0
-            fi
-            echo "Push rejected, retrying ($i/5) ..."
-            git fetch origin main
-            git reset --hard origin/main
-            cp /tmp/state_fresh.json deal_state.json 2>/dev/null || true
-            git add deal_state.json 2>/dev/null || true
-            git diff --cached --quiet || git commit -m "Update state [skip ci]"
-          done
-          echo "Push failed after 5 retries" >&2
-          exit 1
+          # Push state only to the branch that triggered this run.
+          # A rejected push retries that same branch. It does not reset to main.
+          sh scripts/persist_branch_state.sh deal_state.json "Update state [skip ci]"
