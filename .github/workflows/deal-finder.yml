@@ -20,6 +20,10 @@ on:
         description: "Nur testen (kein Discord-Post, kein State-Commit)"
         type: boolean
         default: false
+      query_filter:
+        description: "Nur Suchen mit diesen Teilstrings (kommagetrennt, z.B. 'gold star,flashfire'); leer = alle"
+        type: string
+        default: ""
 
 concurrency:
   group: vintage-deal-finder
@@ -31,7 +35,7 @@ permissions:
 jobs:
   find-deals:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 45   # seit 2026-11-08 ca. 105 Suchen (Aeren bis 2016) statt 23, Lauf dauert ca. 12-18 Min
     steps:
       - uses: actions/checkout@v4
 
@@ -50,6 +54,7 @@ jobs:
         env:
           DISCORD_WEBHOOK_HOLO: ${{ secrets.DISCORD_WEBHOOK_HOLO }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
+          VINTAGE_QUERY_FILTER: ${{ inputs.query_filter }}
         run: |
           ARGS=""
           if [ "$DRY_RUN_INPUT" = "true" ]; then ARGS="--dry-run"; fi

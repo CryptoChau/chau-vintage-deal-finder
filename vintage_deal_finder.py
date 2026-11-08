@@ -1,33 +1,51 @@
 # -*- coding: utf-8 -*-
 """
-CHAU Vintage-Deal-Finder
-========================
-Durchsucht eBay.ch (Sofort-Kaufen) nach Vintage-Pokemon-Karten (Base Set, Jungle, Fossil,
-Team Rocket, Gym, Neo; englisch + japanisch; roh oder PSA/BGS/CGC), berechnet pro Karte+Zustand
-einen Referenzpreis (Median aller aktuellen Angebote) und meldet Angebote, die deutlich unter
-diesem Median liegen, als Deal in Discord (Webhook DISCORD_WEBHOOK_HOLO) - mit Foto und Link.
+CHAU Vintage-Deal-Finder (Karten bis 2016)
+==========================================
+Durchsucht eBay.ch (Sofort-Kaufen) nach rohen (ungegradeten) Pokemon-Einzelkarten aus ALLEN
+Aeren von 1996 bis 2016: WOTC (Base Set bis Neo Destiny), e-Card (Aquapolis/Skyridge/
+Expedition), EX-Aera inkl. GOLD STARS (Ruby & Sapphire bis Power Keepers), Diamond & Pearl,
+Platinum, HeartGold SoulSilver, Black & White, XY (bis XY Evolutions, Nov. 2016); englisch +
+japanisch. Gesucht werden Holos, Gold Stars, beliebte und seltene Karten.
 
-Zielgruppe: Flohmarkt-Kunde, der Vintage-Holos fuer 100-300 CHF pro Karte kauft.
-Einkaufsfenster daher standardmaessig 30-250 CHF inkl. Versand (MIN_TOTAL / MAX_TOTAL).
+Pro Karte (Set + Name + Variante + Zustand) wird ein Referenzpreis gebildet: Median aller
+ANDEREN aktuellen Angebote PLUS Preishistorie frueherer Laeufe (seltene Karten haben selten
+3+ Angebote gleichzeitig, siehe Learnings im Booster-Pack-Finder). Gemeldet werden Angebote
+deutlich UNTER diesem Median (= Verkaeufer hat den Preis nicht dem Markt nachgezogen) in Discord
+(Webhook DISCORD_WEBHOOK_HOLO, Kanal #ebay-vintage-deals) - mit Foto und Link.
 
-Haendler-Herkunft: kein Land wird ausgeschlossen, auch USA nicht (Stand 2026-09-26). Zu hohe
-Versandkosten fangen MIN_TOTAL/MAX_TOTAL (Preis + Versand) ohnehin ab. Japanische Verkaeufer
-werden bevorzugt: in Discord mit Flagge markiert und im Ranking nach vorne gezogen.
+Reihenfolge der Meldungen: Gold Stars zuerst, dann beliebte Pokemon in seltener Variante
+(Holo/ex/Full Art/LV.X/Prime/LEGEND/BREAK/Secret...), dann der Rest; innerhalb einer Stufe
+japanische Verkaeufer zuerst, danach groesster Abstand zum Median.
+
+PSA-gegradete Karten sind bewusst NICHT hier (eigener Bot/Kanal #psa-vintage-deals), BGS/CGC
+bleiben im Pool (Grade ist Teil des Vergleichsschluessels).
+
+Zielgruppe: Flohmarkt-Kunde, der Vintage-Holos fuer 100-300 CHF pro Karte kauft -> Einkaufs-
+fenster 20-250 CHF inkl. Versand (MIN_TOTAL / MAX_TOTAL), Marktwert (Median) mind. 40 CHF.
+
+Haendler-Herkunft: kein Land wird ausgeschlossen (zu hohe Versandkosten fangen MIN/MAX_TOTAL
+ab). Japanische Verkaeufer werden bevorzugt und mit Flagge markiert.
 
 Aufruf:
     python vintage_deal_finder.py              -> normaler Lauf, postet neue Deals
     python vintage_deal_finder.py --dry-run    -> nur Log/Ausgabe, kein Discord, kein State
     python vintage_deal_finder.py --reset      -> vergisst bereits gemeldete Angebote
+    VINTAGE_QUERY_FILTER="gold star,xy"        -> nur Suchen, die einen dieser Teilstrings
+                                                  enthalten (schnelle Tests)
 
 Technik: eBay blockt Headless-Browser (403). Es wird deshalb ein echtes Chromium-Fenster
-per Playwright gestartet, das ausserhalb des Bildschirms positioniert wird.
+per Playwright gestartet (lokal ausserhalb des Bildschirms, in der Cloud unter xvfb).
 """
 import json
 import os
 import re
 import statistics
+import string
 import sys
 import time
+import unicodedata
+import urllib.parse
 import urllib.request
 from datetime import datetime
 
@@ -37,132 +55,355 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, "deal_state.json")
 LOG_FILE = os.path.join(HERE, "deal_finder.log")
 LOCK_FILE = os.path.join(HERE, "deal_finder.lock")
+NAMES_FILE = os.path.join(HERE, "pokemon_names.json")
 
 DRY_RUN = "--dry-run" in sys.argv
 RESET = "--reset" in sys.argv
 
 # ---------------------------------------------------------------- Einstellungen
-MIN_TOTAL = 30.0        # CHF inkl. Versand
+MIN_TOTAL = 20.0        # CHF inkl. Versand (Karten ab ca. 2003 sind guenstiger als WOTC-Holos)
 MAX_TOTAL = 250.0       # CHF inkl. Versand (Kunde zahlt 100-300, Marge muss drin sein)
-DEAL_RATIO = 0.72       # Preis <= 72 % des Medians gleicher Karte/Zustand
-MIN_SAMPLES = 4         # Mindestens so viele Vergleichsangebote fuer einen Median
-MIN_MEDIAN = 80.0       # Marktwert (Median) mind. so hoch, sonst fuer den 100-300-CHF-Kunden uninteressant
-MAX_POSTS_PER_RUN = 12
+DEAL_RATIO = 0.72       # Preis <= 72 % des Medians der ANDEREN Angebote gleicher Karte/Variante
+MIN_SAMPLES = 3         # mind. so viele ANDERE Vergleichsangebote (inkl. Historie)
+MIN_MEDIAN = 40.0       # Marktwert (Median) mind. so hoch, sonst fuer den 100-300-CHF-Kunden uninteressant
+MAX_POSTS_PER_RUN = 15
 PAGE_WAIT_MS = 2500
+HISTORY_MAX_DAYS = 60       # so lange bleibt ein nicht mehr gesehenes Angebot als Preisreferenz erhalten
+HISTORY_MAX_PER_KEY = 30    # pro Karte hoechstens so viele Historien-Eintraege (haelt deal_state.json klein)
+
+# Schluesselwoerter, die moderne Karten (ab 2017) ausschliessen. Die Set-Whitelist (SETS) ist
+# der eigentliche Filter - das hier faengt Faelle ab, in denen ein modernes Angebot zufaellig
+# einen alten Set-Namen enthaelt ("Sun & Moon Base Set") oder gar keinen Set-Namen hat.
+EXCL_MODERN_QUERY = " -vmax -vstar -gx -paldea -scarlet -violet -sword -shield"
 
 SEARCHES = [
-    # englisch
+    # ---- WOTC (Base Set - Neo Destiny), englisch
     "pokemon base set holo", "pokemon base set 1st edition holo", "pokemon shadowless holo",
     "pokemon jungle holo", "pokemon fossil holo", "pokemon team rocket holo",
     "pokemon gym heroes holo", "pokemon gym challenge holo",
     "pokemon neo genesis holo", "pokemon neo discovery holo", "pokemon neo revelation holo", "pokemon neo destiny holo",
-    "pokemon wotc holo psa", "pokemon base set psa", "pokemon shining psa",
-    # japanisch
+    "pokemon wotc holo rare", "pokemon shining holo",
+    # ---- WOTC japanisch
     "pokemon japanese base set holo", "pokemon japanese jungle holo", "pokemon japanese fossil holo",
     "pokemon japanese team rocket holo", "pokemon japanese gym holo", "pokemon japanese neo holo",
-    "pokemon japanese no rarity holo", "pokemon japanese old back psa",
+    "pokemon japanese no rarity holo", "pokemon japanese old back holo",
+    # ---- e-Card-Aera (2002-2003)
+    "pokemon aquapolis holo", "pokemon skyridge holo", "pokemon expedition holo", "pokemon legendary collection holo",
+    # ---- Gold Stars (EX-Aera) - hoechste Prioritaet
+    "pokemon gold star", "pokemon gold star holo", "pokemon charizard gold star", "pokemon rayquaza gold star",
+    "pokemon mew gold star", "pokemon umbreon gold star", "pokemon espeon gold star", "pokemon pikachu gold star",
+    # ---- EX-Aera (2003-2007)
+    "pokemon ex ruby sapphire holo", "pokemon ex sandstorm holo", "pokemon ex dragon holo",
+    "pokemon team magma team aqua holo", "pokemon ex hidden legends holo", "pokemon ex firered leafgreen holo",
+    "pokemon ex team rocket returns holo", "pokemon ex deoxys holo", "pokemon ex emerald holo",
+    "pokemon ex unseen forces holo", "pokemon ex delta species holo", "pokemon ex legend maker holo",
+    "pokemon ex holon phantoms holo", "pokemon ex crystal guardians holo", "pokemon ex dragon frontiers holo",
+    "pokemon ex power keepers holo",
+    # ---- Diamond & Pearl / Platinum / HeartGold SoulSilver (2007-2011)
+    "pokemon diamond pearl holo lv.x", "pokemon mysterious treasures secret wonders holo",
+    "pokemon great encounters majestic dawn holo", "pokemon legends awakened holo", "pokemon stormfront holo",
+    "pokemon platinum holo lv.x", "pokemon rising rivals supreme victors holo",
+    "pokemon heartgold soulsilver holo prime", "pokemon unleashed holo", "pokemon undaunted triumphant holo",
+    "pokemon call of legends shiny",
+    # ---- Black & White (2011-2013)
+    "pokemon black white holo ex", "pokemon emerging powers noble victories holo", "pokemon next destinies holo",
+    "pokemon dark explorers holo", "pokemon dragons exalted holo", "pokemon boundaries crossed holo",
+    "pokemon plasma storm holo", "pokemon plasma freeze holo", "pokemon plasma blast holo",
+    "pokemon legendary treasures holo", "pokemon radiant collection", "pokemon dragon vault holo",
+    # ---- XY (2014-2016)
+    "pokemon xy holo ex", "pokemon flashfire holo", "pokemon furious fists holo", "pokemon phantom forces holo",
+    "pokemon primal clash holo", "pokemon double crisis roaring skies holo", "pokemon ancient origins holo",
+    "pokemon breakthrough holo", "pokemon breakpoint holo", "pokemon fates collide holo",
+    "pokemon steam siege holo", "pokemon generations holo", "pokemon xy evolutions holo",
+    # ---- Japanisch, jenseits von WOTC
+    "pokemon japanese gold star", "pokemon japanese ex holo", "pokemon japanese pcg holo", "pokemon japanese adv holo",
+    "pokemon japanese e-card holo", "pokemon japanese diamond pearl holo", "pokemon japanese legend holo",
+    "pokemon japanese xy holo", "pokemon japanese bw holo",
+    # ---- Beliebte Karten ueber alle Aeren (Negativ-Woerter halten moderne Treffer fern)
+    "pokemon charizard ex holo" + EXCL_MODERN_QUERY, "pokemon pikachu ex holo" + EXCL_MODERN_QUERY,
+    "pokemon mewtwo ex holo" + EXCL_MODERN_QUERY, "pokemon rayquaza ex holo" + EXCL_MODERN_QUERY,
+    "pokemon lugia ex holo" + EXCL_MODERN_QUERY, "pokemon umbreon holo" + EXCL_MODERN_QUERY,
+    "pokemon espeon holo" + EXCL_MODERN_QUERY, "pokemon gengar holo ex" + EXCL_MODERN_QUERY,
+    "pokemon mega charizard ex" + EXCL_MODERN_QUERY, "pokemon eevee evolution ex holo" + EXCL_MODERN_QUERY,
 ]
 
+# Optionaler Filter fuer schnelle Tests (z.B. VINTAGE_QUERY_FILTER="gold star,flashfire")
+_qf = [s.strip().lower() for s in os.environ.get("VINTAGE_QUERY_FILTER", "").split(",") if s.strip()]
+if _qf:
+    SEARCHES = [q for q in SEARCHES if any(f in q.lower() for f in _qf)]
+
+# (Name, Regex, Aera) - REIHENFOLGE ZAEHLT: spezifische Sets vor generischen. EX-Aera-Sets tragen
+# optional das Praefix "EX", damit es beim Entfernen des Set-Namens aus dem Titel mit verschwindet
+# (sonst wuerde "EX Dragon Frontiers" jede Karte als "EX"-Karte markieren).
+_EX = r"(?:\bex[\s\-]*)?"
 SETS = [
-    ("Base Set 1st Ed.", r"\b1st\s*ed(ition)?\b.*\bbase\b|\bbase\b.*\b1st\s*ed(ition)?\b"),
-    ("Base Set Shadowless", r"shadowless"),
-    ("No Rarity (JP)", r"no\s*rarit"),
-    ("Team Rocket", r"team\s*rocket|\brocket\b"),
-    ("Gym Heroes", r"gym\s*heroes"),
-    ("Gym Challenge", r"gym\s*challenge"),
-    ("Gym", r"\bgym\b|leaders' stadium|challenge from the darkness"),
-    ("Neo Genesis", r"neo\s*genesis|gold,? silver,? to a new world"),
-    ("Neo Discovery", r"neo\s*discovery|crossing the ruins"),
-    ("Neo Revelation", r"neo\s*revelation|awakening legends"),
-    ("Neo Destiny", r"neo\s*destiny|darkness and to light"),
-    ("Neo Premium File", r"premium\s*file"),
-    ("Neo", r"\bneo\b"),
-    ("Jungle", r"\bjungle\b"),
-    ("Fossil", r"\bfossil\b|mystery of the fossils"),
-    ("Base Set 2", r"base\s*set\s*2"),
-    ("Base Set", r"\bbase\s*set\b|\bbase\b|expansion pack|\bbasic\b"),
-    ("Vending/Promo (JP)", r"vending|\bpromo\b|corocoro"),
+    ("Base Set 1st Ed.", r"\b1st\s*ed(ition)?\b.*\bbase\b|\bbase\b.*\b1st\s*ed(ition)?\b", "WOTC"),
+    ("Base Set Shadowless", r"shadowless", "WOTC"),
+    ("No Rarity (JP)", r"no\s*rarit", "WOTC"),
+    # ---- EX-Aera (vor "Team Rocket", sonst frisst dessen Regex "Team Rocket Returns")
+    ("EX Team Rocket Returns", _EX + r"team\s*rocket\s*returns", "EX"),
+    ("EX Ruby & Sapphire", _EX + r"ruby\s*(?:&|and)?\s*sapphire", "EX"),
+    ("EX Sandstorm", _EX + r"sandstorm", "EX"),
+    ("EX Dragon Frontiers", _EX + r"dragon\s*frontiers", "EX"),
+    ("EX Dragon", r"\bex\s*dragon\b(?!\s*frontiers)", "EX"),
+    ("EX Team Magma vs Team Aqua", _EX + r"(?:team\s*)?(?:magma|aqua)\s*(?:vs\.?|versus|&|and)\s*(?:team\s*)?(?:aqua|magma)", "EX"),
+    ("EX Hidden Legends", _EX + r"hidden\s*legends", "EX"),
+    ("EX FireRed & LeafGreen", _EX + r"fire\s*red\s*(?:&|and)?\s*leaf\s*green|\bfrlg\b", "EX"),
+    ("EX Deoxys", r"\bex\s*deoxys\b", "EX"),
+    ("EX Emerald", _EX + r"\bemerald\b", "EX"),
+    ("EX Unseen Forces", _EX + r"unseen\s*forces", "EX"),
+    ("EX Delta Species", _EX + r"delta\s*species", "EX"),
+    ("EX Legend Maker", _EX + r"legend\s*maker", "EX"),
+    ("EX Holon Phantoms", _EX + r"holon\s*phantoms", "EX"),
+    ("EX Crystal Guardians", _EX + r"crystal\s*guardians", "EX"),
+    ("EX Power Keepers", _EX + r"power\s*keepers", "EX"),
+    # ---- e-Card-Aera
+    ("Aquapolis", r"\baquapolis\b", "e-Card"),
+    ("Skyridge", r"\bskyridge\b", "e-Card"),
+    ("Expedition", r"\bexpedition\b", "e-Card"),
+    ("Legendary Collection", r"legendary\s*collection", "WOTC"),
+    # ---- Diamond & Pearl / Platinum
+    ("DP Mysterious Treasures", r"mysterious\s*treasures", "DP/Pt"),
+    ("DP Secret Wonders", r"secret\s*wonders", "DP/Pt"),
+    ("DP Great Encounters", r"great\s*encounters", "DP/Pt"),
+    ("DP Majestic Dawn", r"majestic\s*dawn", "DP/Pt"),
+    ("DP Legends Awakened", r"legends?\s*awakened", "DP/Pt"),
+    ("DP Stormfront", r"storm\s*front", "DP/Pt"),
+    ("Platinum Rising Rivals", r"rising\s*rivals", "DP/Pt"),
+    ("Platinum Supreme Victors", r"supreme\s*victors", "DP/Pt"),
+    ("Platinum", r"\bplatinum\b", "DP/Pt"),
+    ("Diamond & Pearl", r"diamond\s*(?:&|and)?\s*pearl", "DP/Pt"),
+    # ---- HeartGold SoulSilver
+    ("HGSS Unleashed", r"\bunleashed\b", "HGSS"),
+    ("HGSS Undaunted", r"\bundaunted\b", "HGSS"),
+    ("HGSS Triumphant", r"\btriumphant\b", "HGSS"),
+    ("HGSS Call of Legends", r"call\s*of\s*legends", "HGSS"),
+    ("HeartGold SoulSilver", r"heart\s*gold\s*(?:&|and)?\s*soul\s*silver|\bhgss\b", "HGSS"),
+    # ---- Black & White
+    ("BW Emerging Powers", r"emerging\s*powers", "BW"),
+    ("BW Noble Victories", r"noble\s*victories", "BW"),
+    ("BW Next Destinies", r"next\s*destinies", "BW"),
+    ("BW Dark Explorers", r"dark\s*explorers", "BW"),
+    ("BW Dragons Exalted", r"dragons?\s*exalted", "BW"),
+    ("BW Dragon Vault", r"dragon\s*vault", "BW"),
+    ("BW Boundaries Crossed", r"boundaries\s*crossed", "BW"),
+    ("BW Plasma Storm", r"plasma\s*storm", "BW"),
+    ("BW Plasma Freeze", r"plasma\s*freeze", "BW"),
+    ("BW Plasma Blast", r"plasma\s*blast", "BW"),
+    ("BW Legendary Treasures", r"legendary\s*treasures", "BW"),
+    ("BW Radiant Collection", r"radiant\s*collection", "BW"),
+    ("Black & White", r"black\s*(?:&|and)?\s*white\b", "BW"),
+    # ---- XY
+    ("XY Flashfire", r"flash\s*fire", "XY"),
+    ("XY Furious Fists", r"furious\s*fists", "XY"),
+    ("XY Phantom Forces", r"phantom\s*forces", "XY"),
+    ("XY Primal Clash", r"primal\s*clash", "XY"),
+    ("XY Double Crisis", r"double\s*crisis", "XY"),
+    ("XY Roaring Skies", r"roaring\s*skies", "XY"),
+    ("XY Ancient Origins", r"ancient\s*origins", "XY"),
+    ("XY BREAKthrough", r"break\s*through", "XY"),
+    ("XY BREAKpoint", r"break\s*point", "XY"),
+    ("XY Fates Collide", r"fates\s*collide", "XY"),
+    ("XY Steam Siege", r"steam\s*siege", "XY"),
+    ("XY Generations", r"\bgenerations\b", "XY"),
+    ("XY Evolutions", r"\bevolutions\b", "XY"),
+    ("XY", r"\bxy\b", "XY"),
+    ("POP Series", r"\bpop\s*series\b|\bpop\s*\d\b", "EX"),
+    ("Black Star Promo", r"black\s*star\s*promo|\b(?:xy|bw|dp|hgss)\s*\d{2,3}\b", "Promo"),
+    # ---- WOTC-Rest / japanische Serien (generischer, deshalb ganz hinten)
+    ("Team Rocket", r"team\s*rocket|\brocket\b", "WOTC"),
+    ("Gym Heroes", r"gym\s*heroes", "WOTC"),
+    ("Gym Challenge", r"gym\s*challenge", "WOTC"),
+    ("Gym", r"\bgym\b|leaders' stadium|challenge from the darkness", "WOTC"),
+    ("Neo Genesis", r"neo\s*genesis|gold,? silver,? to a new world", "WOTC"),
+    ("Neo Discovery", r"neo\s*discovery|crossing the ruins", "WOTC"),
+    ("Neo Revelation", r"neo\s*revelation|awakening legends", "WOTC"),
+    ("Neo Destiny", r"neo\s*destiny|darkness and to light", "WOTC"),
+    ("Neo Premium File", r"premium\s*file", "WOTC"),
+    ("Neo", r"\bneo\b", "WOTC"),
+    ("Jungle", r"\bjungle\b", "WOTC"),
+    ("Fossil", r"\bfossil\b|mystery of the fossils", "WOTC"),
+    ("Base Set 2", r"base\s*set\s*2", "WOTC"),
+    ("Base Set", r"\bbase\s*set\b|\bbase\b|expansion pack", "WOTC"),
+    ("e-Card (JP)", r"\be[\-\s]?card\b|pokemon\s*card\s*e\b", "e-Card"),
+    ("ADV (JP)", r"\badv\b", "EX"),
+    ("PCG (JP)", r"\bpcg\b", "EX"),
+    ("Vending/Promo (JP)", r"vending|\bpromo\b|corocoro", "Promo"),
 ]
+SETS_C = [(n, re.compile(p, re.I), era) for n, p, era in SETS]
 
-HOLO_NAMES = [
-    # Base
-    "Alakazam", "Blastoise", "Chansey", "Charizard", "Clefairy", "Gyarados", "Hitmonchan", "Machamp", "Magneton",
-    "Mewtwo", "Nidoking", "Ninetales", "Poliwrath", "Raichu", "Venusaur", "Zapdos",
-    # Jungle
-    "Clefable", "Electrode", "Flareon", "Jolteon", "Kangaskhan", "Mr. Mime", "Mr Mime", "Nidoqueen", "Pidgeot", "Pinsir",
-    "Scyther", "Snorlax", "Vaporeon", "Venomoth", "Victreebel", "Vileplume", "Wigglytuff",
-    # Fossil
-    "Aerodactyl", "Articuno", "Ditto", "Dragonite", "Gengar", "Haunter", "Hitmonlee", "Hypno", "Kabutops", "Lapras",
-    "Moltres", "Muk",
-    # Team Rocket
-    "Dark Alakazam", "Dark Arbok", "Dark Blastoise", "Dark Charizard", "Dark Dragonite", "Dark Dugtrio", "Dark Golbat",
-    "Dark Gyarados", "Dark Hypno", "Dark Machamp", "Dark Magneton", "Dark Slowbro", "Dark Vileplume", "Dark Weezing",
-    "Dark Raichu", "Here Comes Team Rocket", "Rocket's Sneak Attack", "Rainbow Energy",
-    # Gym
-    "Blaine's Moltres", "Brock's Rhydon", "Erika's Dragonair", "Erika's Vileplume", "Lt. Surge's Electabuzz",
-    "Lt. Surge's Fearow", "Lt. Surge's Magneton", "Rocket's Hitmonchan", "Rocket's Moltres", "Rocket's Scyther",
-    "Sabrina's Gengar", "Blaine's Arcanine", "Blaine's Charizard", "Brock's Ninetales", "Erika's Venusaur",
-    "Giovanni's Gyarados", "Giovanni's Machamp", "Giovanni's Nidoking", "Giovanni's Persian", "Koga's Beedrill",
-    "Koga's Ditto", "Lt. Surge's Raichu", "Misty's Golduck", "Misty's Gyarados", "Rocket's Mewtwo", "Rocket's Zapdos",
-    "Sabrina's Alakazam", "Misty's Seadra", "Misty's Tentacruel",
-    # Neo
-    "Ampharos", "Azumarill", "Bellossom", "Feraligatr", "Heracross", "Jumpluff", "Kingdra", "Lugia", "Meganium",
-    "Pichu", "Skarmory", "Slowking", "Steelix", "Togetic", "Typhlosion",
-    "Espeon", "Forretress", "Hitmontop", "Houndoom", "Politoed", "Scizor", "Smeargle", "Tyranitar", "Umbreon",
-    "Unown", "Ursaring", "Wobbuffet", "Yanma",
-    "Blissey", "Celebi", "Crobat", "Entei", "Ho-oh", "Ho-Oh", "Misdreavus", "Porygon2", "Raikou", "Suicune",
-    "Shining Gyarados", "Shining Magikarp", "Shining Charizard", "Shining Mewtwo", "Shining Kabutops", "Shining Celebi",
-    "Shining Noctowl", "Shining Raichu", "Shining Steelix", "Shining Tyranitar",
-    "Dark Ampharos", "Dark Crobat", "Dark Donphan", "Dark Espeon", "Dark Feraligatr", "Dark Gengar", "Dark Houndoom",
-    "Dark Porygon2", "Dark Scizor", "Dark Typhlosion", "Dark Tyranitar", "Light Arcanine", "Light Azumarill",
-    "Light Dragonite", "Light Togetic",
-    # Trainer/sonstige gefragte
-    "Pikachu", "Eevee", "Mew", "Lucky Stadium",
+# Namen, die nicht (oder anders) in der Gen-1-6-Pokedex-Liste stehen: Trainer-/Rocket-Karten
+# der WOTC-Aera, die als eigene "Karte" gelten sollen.
+EXTRA_NAMES = [
+    "Here Comes Team Rocket", "Rocket's Sneak Attack", "Rainbow Energy", "Lucky Stadium",
 ]
-# laengere Namen zuerst, damit "Dark Charizard" vor "Charizard" matcht
-HOLO_NAMES_SORTED = sorted(set(HOLO_NAMES), key=len, reverse=True)
+POPULAR = {
+    "charizard", "pikachu", "mew", "mewtwo", "rayquaza", "lugia", "ho-oh", "umbreon", "espeon", "gengar",
+    "blastoise", "venusaur", "dragonite", "gyarados", "eevee", "vaporeon", "jolteon", "flareon", "glaceon",
+    "leafeon", "sylveon", "tyranitar", "suicune", "raikou", "entei", "celebi", "latias", "latios", "groudon",
+    "kyogre", "deoxys", "garchomp", "lucario", "darkrai", "arceus", "giratina", "dialga", "palkia",
+    "reshiram", "zekrom", "kyurem", "greninja", "gardevoir", "blaziken", "sceptile", "swampert", "machamp",
+    "alakazam", "snorlax", "lapras", "articuno", "zapdos", "moltres", "absol", "salamence", "metagross",
+    "jirachi", "manaphy", "shaymin", "victini", "zoroark", "xerneas", "yveltal", "mimikyu", "togepi",
+    "scizor", "steelix", "typhlosion", "feraligatr", "meganium", "ampharos", "houndoom", "crobat", "kingdra",
+}
+
+
+def norm(t):
+    """Kleinschreibung, Akzente weg (Flabébé -> flabebe), typografische Apostrophe vereinheitlicht.
+    Die Symbole fuer Gold Star / Delta bleiben erhalten."""
+    t = (t or "").replace("’", "'").replace(" ", " ")
+    t = "".join(ch for ch in unicodedata.normalize("NFKD", t) if not unicodedata.combining(ch))
+    return t.lower()
+
+
+def _load_names():
+    names = []
+    try:
+        names = json.load(open(NAMES_FILE, encoding="utf-8"))
+    except Exception:
+        pass
+    # Fallback/Ergaenzung: die klassischen Vintage-Holos (falls die JSON-Datei fehlt)
+    names += ["Charizard", "Blastoise", "Venusaur", "Pikachu", "Mewtwo", "Mew", "Gengar", "Dragonite", "Lugia",
+              "Umbreon", "Espeon", "Rayquaza", "Raichu", "Alakazam", "Machamp", "Gyarados"]
+    return names
+
+
+def _build_name_regex(names):
+    base = {}
+    for n in names:
+        n2 = norm(re.sub(r"[♀♂]", "", n)).strip()
+        if len(n2) < 3:
+            continue
+        base[n2] = n2
+    for n in EXTRA_NAMES:
+        base[norm(n)] = norm(n)
+    parts = []
+    for n2 in sorted(base, key=len, reverse=True):
+        # Trenner (Leerzeichen, Bindestrich, Punkt, Apostroph) im Namen optional
+        pat = re.escape(n2)
+        pat = re.sub(r"(?:\\ |\\-|\\\.|')", r"[\\s\\-.']*", pat)
+        parts.append(pat)
+    return re.compile(r"(?<![a-z0-9])(" + "|".join(parts) + r")(?![a-z0-9])")
+
+
+NAME_RE = _build_name_regex(_load_names())
+PREFIX_RE = re.compile(r"(dark|light|shining|holon'?s?|rocket'?s?|team\s+\w+'?s?|(?:lt\.?\s+)?[a-z]+'s)\s*$")
 
 EXCLUDE = re.compile(
-    r"\b(proxy|custom|fake|replica|orica|repro|lot\b|bundle|sammlung|collection of|x\s?\d{1,2}\b|\d{1,2}\s?x\b|"
-    r"karten\s?set|complete set|komplett|sleeve|binder|booster|pack\b|box\b|deck\b|tin\b|"
+    r"\b(proxy|custom|fake|replica|orica|repro|lot\b|bundle|sammlung|collection of|"
+    r"x\s?\d{1,2}(?!\s*/)\b|\d{1,2}\s?x\b|"
+    r"karten\s?set|complete set|komplett|sleeve|binder|booster|pack\b|box\b|deck\b|tin\b|display|case\b|starter|"
     r"spanish|espa[nñ]ol|italian|italiano|french|fran[cç]ais|german|deutsch|portugu|korean|chinese|"
-    r"\bde\b|\bfr\b|\bit\b|\bes\b|coin|m[uü]nze|sticker|topps|carddass|bandai|meiji|amada|ensky)\b",
+    r"\bde\b|\bfr\b|\bit\b|\bes\b|coin|m[uü]nze|sticker|topps|carddass|bandai|meiji|amada|ensky|"
+    r"jumbo|oversize[d]?|poster|figur(?:e|ine)?|plush|badge|magnet|puzzle|folder|album|portfolio|"
+    r"code\b|codes\b|tcgo|ptcgo|mystery(?!\s+of\s+the)|surprise|grab\s*bag|random|zufall|[uü]berraschung|empty|leer)\b",
     re.I,
 )
+# Karten ab 2017 (Sun & Moon und alles danach). Bewusst NICHT hier: ex/EX (gibt es 2003-2007
+# und 2011-2016 als echte Karten), BREAK, Mega, Full Art, Secret Rare, LV.X, Prime, LEGEND.
 MODERN = re.compile(
-    r"\b(ex|gx|v|vmax|vstar|tag team|sv\d*|swsh|sm\d*|xy\d*|bw\d*|dp\d*|scarlet|violet|sword|shield|sun|moon|"
-    r"destined rivals|evolving skies|obsidian|paldea|151|celebrations|crown zenith|prismatic|surging|stellar|"
-    r"journey together|temporal|paradox|twilight|mega evolution|illustration rare|secret rare|full art|alt art|"
-    r"20(0[3-9]|1\d|2\d))\b|\b\d{3}/\d{3}\b",
+    r"\b(gx|vmax|vstar|v-?union|tag\s*team|swsh\d*|sm\d{1,3}|sv\d{1,2}[a-z]?|"
+    r"sun\s*(?:&|and)?\s*moon|sonne\s*(?:&|und)?\s*mond|sword\s*(?:&|and)?\s*shield|schwert|"
+    r"scarlet|violet|paldea|paldean|obsidian\s*flames|paradox\s*rift|temporal\s*forces|twilight\s*masquerade|"
+    r"surging\s*sparks|stellar\s*crown|destined\s*rivals|journey\s*together|prismatic|crown\s*zenith|"
+    r"evolving\s*skies|celebrations|shining\s*fates|shining\s*legends|hidden\s*fates|cosmic\s*eclipse|"
+    r"unified\s*minds|unbroken\s*bonds|team\s*up|lost\s*thunder|dragon\s*majesty|celestial\s*storm|"
+    r"forbidden\s*light|ultra\s*prism|crimson\s*invasion|burning\s*shadows|guardians\s*rising|"
+    r"detective\s*pikachu|lost\s*origin|astral\s*radiance|brilliant\s*stars|fusion\s*strike|"
+    r"battle\s*styles|chilling\s*reign|vivid\s*voltage|darkness\s*ablaze|rebel\s*clash|"
+    r"mega\s*evolution|phantasmal|ascended\s*heroes|black\s*bolt|white\s*flare|perfect\s*order|chaos\s*rising|"
+    r"mega\s*brave|mega\s*symphonia|illustration\s*rare|special\s*illustration|alt(?:ernate)?\s*art|"
+    r"trainer\s*gallery|pokemon\s*go|pgo|151|20(?:1[7-9]|2\d))\b|\bradiant\s+(?!collection)|\bv\b",
     re.I,
 )
 NONHOLO = re.compile(r"non[\s-]?holo|no[\s-]?holo|nicht[\s-]?holo|\bregular\b|\bcommon\b|uncommon|reverse", re.I)
+# PSA-gegradete Karten gehoeren in den PSA-Bot (#psa-vintage-deals), nicht hierher.
+PSA_GRADED = re.compile(r"\bpsa\s*-?\s*(10|[1-9])(?!\.?\d)\b", re.I)
+
+GOLD_STAR_RE = re.compile(r"gold\s*star|☆|★")
+COND_STRIP = re.compile(
+    r"\b(nm|ex|lp|mp|hp|vg|gd|pl)\s*[-/+]\s*(nm|ex|lp|mp|hp|vg|gd|pl|mint)\b|\bcondition\b\s*:?\s*\w+|"
+    r"\b(near\s*mint|mint)\s*[-/]\s*ex\b", re.I)
+VARIANT_TAGS = [
+    ("Secret Rare", re.compile(r"secret|rainbow|gold\s*(?:rare|card)")),
+    ("Full Art", re.compile(r"full\s*art|\bfa\b")),
+    ("Mega EX", re.compile(r"\bmega\b|\bm[\s\-]+\w+[\s\-]+ex\b")),
+    ("EX", re.compile(r"\bex\b")),
+    ("LV.X", re.compile(r"\blv\.?\s*x\b|\blevel\s*x\b")),
+    ("Prime", re.compile(r"\bprime\b")),
+    ("LEGEND", re.compile(r"\blegend\b")),
+    ("BREAK", re.compile(r"\bbreak\b")),
+    ("Shining", re.compile(r"\bshining\b|\bshiny\b")),
+    ("Delta", re.compile(r"δ|\bdelta\b")),
+]
+HOLO_RE = re.compile(r"\bholo(?:foil|graphic)?\b")
+FIRST_ED_RE = re.compile(r"1st\s*ed|first\s*edition|(?<![0-9a-z])1st(?![0-9a-z])")
 
 
 def detect_set(t):
-    for name, pat in SETS:
-        if re.search(pat, t, re.I):
-            return name
-    return None
+    """(Set-Name, Aera, Match-Objekt) oder (None, None, None)."""
+    for name, rx, era in SETS_C:
+        m = rx.search(t)
+        if m:
+            return name, era, m
+    return None, None, None
 
 
-def detect_name(t):
-    tl = t.lower()
-    for n in HOLO_NAMES_SORTED:
-        if n.lower() in tl:
-            return n
-    return None
+def detect_name(tn):
+    """Findet den Pokemon-/Trainer-Namen (normalisierter Titel!). Gibt (Anzeigename, Basisname)
+    zurueck. Praefixe wie Dark/Light/Shining/Rocket's/Blaine's gehoeren zum Karten-Namen."""
+    m = NAME_RE.search(tn)
+    if not m:
+        return None, None
+    base = re.sub(r"[\s\-.']+", " ", m.group(1)).strip()
+    base_key = base.replace(" ", "-") if base in ("ho oh",) else base
+    pm = PREFIX_RE.search(tn[:m.start()].rstrip())
+    prefix = pm.group(1).strip() if pm else ""
+    disp = string.capwords((prefix + " " + base).strip())
+    return disp, base_key
+
+
+def is_gold_star(tt, base):
+    if GOLD_STAR_RE.search(tt):
+        return True
+    # EX-Aera-Goldstars heissen offiziell nur "<Name> Star" (z.B. "Rayquaza Star")
+    return bool(base and re.search(re.escape(base) + r"\s*[-–]?\s*star\b(?!\s*(?:promo|wars))", tt))
+
+
+def detect_variant(tt, base, era=None):
+    """(Variante fuer den Vergleichsschluessel, Tag-Liste fuer die Anzeige)."""
+    tags = []
+    gold = is_gold_star(tt, base)
+    if gold:
+        tags.append("Gold Star")
+    key_variant = "Gold Star" if gold else None
+    for tag, rx in VARIANT_TAGS:
+        # In der EX-Aera steckt "EX" auch im Set-Namen ("EX Dragon Frontiers") - ob eine Karte
+        # selbst eine ex-Karte ist, laesst sich dort aus dem Titel nicht verlaesslich ableiten.
+        if tag == "EX" and era == "EX":
+            continue
+        if rx.search(tt):
+            tags.append(tag)
+            if key_variant is None:
+                key_variant = tag
+    if HOLO_RE.search(tt):
+        tags.append("Holo")
+    first = bool(FIRST_ED_RE.search(tt))
+    if first:
+        tags.append("1st Edition")
+    variant = (key_variant or "Std") + ("+1st" if first else "")
+    return variant, tags
 
 
 def detect_grade(t):
     m = re.search(r"\b(psa|bgs|cgc|beckett|ace)\s*-?\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6|5\.5|5|4|3|2|1)\b", t, re.I)
     if m:
         return f"{m.group(1).upper()} {m.group(2)}"
-    # eBays offizielle "Artikelzustand"-Stufen fuer ungegradete Sammelkarten (das Feld, das der
-    # Nutzer 2026-09-26 als massgeblich markiert hat, NICHT irgendein Titel-Slang):
+    # eBays offizielle "Artikelzustand"-Stufen fuer ungegradete Sammelkarten:
     # Near Mint or Better / Lightly Played (Excellent) / Moderately Played (Very Good) /
-    # Heavily Played (Poor) / Damaged - DE etwa: Neuwertig oder besser / Leicht bespielt
-    # (Ausgezeichnet) / Mäßig bespielt (Sehr gut) / Stark bespielt (Schlecht) / Beschädigt.
+    # Heavily Played (Poor) / Damaged - DE: Neuwertig oder besser / Leicht bespielt (Ausgezeichnet) /
+    # Mäßig bespielt (Sehr gut) / Stark bespielt (Schlecht) / Beschädigt.
     # WICHTIG: "(Very Good)"/"(Sehr gut)" gehoert bei eBay zur MITTLEREN Stufe (Moderately
     # Played), nicht zu Lightly Played - deshalb zuerst und getrennt von "Excellent" pruefen.
     if re.search(r"near\s*mint\s*or\s*better|neuwertig\s*oder\s*besser", t, re.I):
@@ -181,8 +422,7 @@ def detect_grade(t):
     if re.search(r"\b(lp|pl|vg\+?)\b", t, re.I):
         return "raw LP (Titel)"
     # "mp"/"hp" NUR als eigenstaendiges Wort matchen (kein \w*-Suffix!), sonst matcht z.B. die
-    # Pokemon-Statzeile "HP70"/"HP100" im Titel faelschlich als Zustand "HP" (Heavily Played) -
-    # \bhp\b schlaegt bei "HP70" korrekt fehl (keine Wortgrenze zwischen "P" und "70").
+    # Pokemon-Statzeile "HP70"/"HP100" im Titel faelschlich als Zustand "HP" (Heavily Played).
     if re.search(r"\b(mp|hp)\b", t, re.I) or re.search(
         r"\b(moderat|played|heavy|heavily|damaged|dmg|poor|beschädigt|bespielt|bend|bent|"
         r"crease|creased|knick|geknickt|inked|ink|written|scratch|kratzer|whitening|riss|torn)\w*\b",
@@ -192,8 +432,21 @@ def detect_grade(t):
     return "raw ?"
 
 
+def grade_band(g):
+    """Grobe Zustandsstufe fuer den Vergleichsschluessel (sonst wird jede Karte in 7 Zustands-
+    Toepfe zerhackt und keiner erreicht genug Angebote). Gegradete Karten (BGS/CGC...) bleiben
+    nach exaktem Grade getrennt."""
+    if not g.startswith("raw"):
+        return g
+    if re.search(r"MP|HP|Damaged", g):
+        return "raw worn"
+    if re.search(r"NM|LP", g):
+        return "raw good"
+    return "raw ?"
+
+
 def is_japanese(t):
-    return bool(re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b|old back|no rarity|vending|carddass", t, re.I))
+    return bool(re.search(r"japan|japanese|japanisch|\bjp\b|\bjpn\b|old back|no rarity|vending|carddass|\bpcg\b|\badv\b", t, re.I))
 
 
 def parse_chf(s):
@@ -223,11 +476,8 @@ def log(msg):
 
 
 # ------------------------------------------------------- Haendler-Herkunft
-# Nutzerwunsch 2026-09-26: KEIN Laender-Ausschluss (auch US-Haendler wieder erlaubt, Stand
-# 2026-09-26 spaeter am Tag zurueckgenommen) - zu hohe Versandkosten werden ohnehin schon
-# ueber MIN_TOTAL/MAX_TOTAL (Preis + Versand) abgefangen. Japan bleibt Top-Praeferenz und
-# wird beim Posten nach vorne gezogen und mit einer Flagge markiert. eBay.ch zeigt bei jedem
-# Suchtreffer "aus <Land>" (deutsche Bezeichnung) im Kartentext - daraus wird das Land gelesen.
+# Kein Laender-Ausschluss (zu hohe Versandkosten werden ueber MIN_TOTAL/MAX_TOTAL - Preis +
+# Versand - abgefangen). Japan bleibt Top-Praeferenz und wird nach vorne gezogen und markiert.
 def is_japan_origin(country_raw):
     return (country_raw or "").strip().lower() == "japan"
 
@@ -252,12 +502,9 @@ EXTRACT_JS = """() => [...document.querySelectorAll('li.s-item, li.s-card')].map
 def fetch_all():
     items = {}
     # eBay blockt echten Headless-Chrome (403/Stub-Seite, getestet 2026-09-26: urllib, curl,
-    # Playwright headless=True, Chrome "--headless=new" und sogar camoufox headless liefern
-    # alle nur eine leere Fehlerseite). Nur ein "echter" (headed) Chromium-Prozess funktioniert.
-    # Lokal (Windows) wird das Fenster ausserhalb des sichtbaren Desktops platziert, damit es
-    # den Nutzer nicht stoert. In der Cloud (GitHub Actions, Linux) laeuft der Lauf unter einem
-    # virtuellen Display (xvfb-run) - dort ist niemand da, den man stoeren koennte, also normale
-    # Fensterposition.
+    # Playwright headless=True, Chrome "--headless=new" und sogar camoufox headless). Nur ein
+    # "echter" (headed) Chromium-Prozess funktioniert. Lokal (Windows) wird das Fenster
+    # ausserhalb des Desktops platziert, in der Cloud (Linux) laeuft es unter xvfb-run.
     launch_args = ["--window-size=1280,900"]
     if os.name == "nt":
         launch_args.insert(0, "--window-position=-2400,-2400")
@@ -266,7 +513,7 @@ def fetch_all():
         ctx = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900})
         page = ctx.new_page()
         for q in SEARCHES:
-            url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.request.quote(q) +
+            url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
                    f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(MAX_TOTAL) + 60}&_ipg=240")
             rows = []
             for attempt in range(3):
@@ -295,64 +542,138 @@ def classify(items):
     out = []
     for r in items.values():
         t = r["t"]
+        full_text = " ".join([t, r.get("sub", ""), r.get("full", "")])
         if EXCLUDE.search(t) or NONHOLO.search(t) or MODERN.search(t):
             continue
+        if PSA_GRADED.search(full_text):
+            continue  # eigener PSA-Bot
         price = parse_chf(r["p"])
         if price is None:
             continue
-        is_jp = is_japan_origin(r.get("country", ""))
+        is_jp_seller = is_japan_origin(r.get("country", ""))
         ship = parse_shipping(r["s"])
+        # Fehlt der Versandpreis in der Trefferliste (v.a. Auslandsverkaeufer mit "eBay International
+        # Shipping"), wuerde der Gesamtpreis zu niedrig ausfallen (Fehlalarm 2026-10-06) -> Pauschale.
+        ship_est = not re.search(r"CHF|kostenlos|gratis|free", r["s"] or "", re.I)
+        if ship_est:
+            ship = 8.0 if (r.get("country") or "").strip().lower() == "schweiz" else 25.0
         total = round(price + ship, 2)
-        name = detect_name(t)
-        sset = detect_set(t)
-        if not name or not sset:
+        sset, era, sm = detect_set(norm(t))
+        if not sset:
             continue
-        # Zustand steht meistens NICHT im Titel, sondern im separaten "Artikelzustand"-Feld
-        # der Trefferkarte - deshalb Titel + Zustands-Badge + kompletter sichtbarer Kartentext
-        # zusammen durchsuchen (eBay wechselt haeufig die CSS-Klassen dafuer).
+        # Set-Namen aus dem Titel entfernen, bevor Name/Variante gesucht werden (sonst steckt
+        # z.B. "Dragon" in "EX Dragon Frontiers" oder "Black"/"White" im Set-Namen in den Tags).
+        tn = norm(t)
+        tn_wo_set = (tn[:sm.start()] + " " + tn[sm.end():]) if sm else tn
+        disp_name, base = detect_name(tn_wo_set)
+        if not disp_name:
+            disp_name, base = detect_name(tn)
+        if not disp_name:
+            continue
+        tt = COND_STRIP.sub(" ", tn_wo_set)
+        variant, tags = detect_variant(tt, base, era)
+        # Zustand steht meistens NICHT im Titel, sondern im "Artikelzustand"-Feld der Trefferkarte
         grade = detect_grade(" ".join([t, r.get("sub", ""), r.get("full", "")]))
         lang = "JP" if is_japanese(t) else "EN"
-        key = f"{lang}|{sset}|{name}|{grade}"
+        key = f"{lang}|{sset}|{disp_name}|{variant}|{grade_band(grade)}"
         img = r["img"] or ""
         img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", img)
-        out.append(dict(id=r["id"], title=t, price=price, ship=ship, total=total, name=name, set=sset, grade=grade,
-                        lang=lang, key=key, img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
-                        query=r.get("query", ""), country=r.get("country", "") or "unbekannt", is_jp=is_jp))
+        gold = "Gold Star" in tags
+        popular = base in POPULAR
+        rare = variant != "Std" or "Holo" in tags
+        if gold:
+            tier = 0
+        elif popular and rare:
+            tier = 1
+        elif popular or rare:
+            tier = 2
+        else:
+            tier = 3
+        out.append(dict(id=r["id"], title=t, price=price, ship=ship, ship_est=ship_est, total=total, name=disp_name,
+                        set=sset, era=era, grade=grade, lang=lang, variant=variant, tags=tags, key=key, tier=tier,
+                        img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
+                        query=r.get("query", ""), country=r.get("country", "") or "unbekannt", is_jp=is_jp_seller))
     return out
 
 
-def find_deals(cards):
-    by_key = {}
+def reference_price(vals):
+    """Robuster Referenzpreis: Median, nach Entfernen von Ausreissern (>2.5x oder <0.4x des
+    Roh-Medians) nochmals Median. None, wenn danach zu wenig Angebote uebrig sind."""
+    if len(vals) < MIN_SAMPLES:
+        return None, 0
+    raw = statistics.median(vals)
+    kept = [v for v in vals if 0.4 * raw <= v <= 2.5 * raw]
+    if len(kept) < MIN_SAMPLES:
+        return None, len(kept)
+    return statistics.median(kept), len(kept)
+
+
+def find_deals(cards, history):
+    # Pro Karte ein Pool {Angebots-ID: Gesamtpreis}: Historie frueherer Laeufe + aktuelle
+    # Live-Angebote (live ueberschreibt Historie derselben ID -> kein Doppelzaehlen).
+    pool = {}
+    for key, bucket in history.items():
+        pool[key] = {lid: v[0] for lid, v in bucket.items()}
     for c in cards:
-        by_key.setdefault(c["key"], []).append(c["total"])
+        pool.setdefault(c["key"], {})[c["id"]] = c["total"]
     deals = []
     for c in cards:
-        vals = by_key[c["key"]]
-        if len(vals) < MIN_SAMPLES:
+        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL):
             continue
-        med = statistics.median(vals)
-        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL) or med < MIN_MEDIAN:
+        # Referenz OHNE das Angebot selbst (sonst zieht der eigene Preis den Median nach unten)
+        others = [t for lid, t in pool[c["key"]].items() if lid != c["id"]]
+        med, n = reference_price(others)
+        if med is None or med < MIN_MEDIAN:
             continue
         if c["total"] <= DEAL_RATIO * med:
-            c = dict(c, median=round(med, 2), n=len(vals), ratio=round(c["total"] / med, 2))
-            deals.append(c)
-    # Japan-Verkaeufer sind Top-Praeferenz -> in der Reihenfolge (und damit beim Posten
-    # mit MAX_POSTS_PER_RUN) nach vorne ziehen, danach nach Deal-Faktor sortieren.
-    deals.sort(key=lambda d: (0 if d["is_jp"] else 1, d["ratio"]))
+            deals.append(dict(c, median=round(med, 2), n=n, ratio=round(c["total"] / med, 2)))
+    # Gold Stars zuerst, dann beliebte seltene Karten, dann der Rest; innerhalb einer Stufe
+    # japanische Verkaeufer zuerst, danach groesster Abstand zum Median.
+    deals.sort(key=lambda d: (d["tier"], 0 if d["is_jp"] else 1, d["ratio"]))
     return deals
+
+
+def update_history(history, cards):
+    """Traegt die aktuell klassifizierten Angebote in die Preishistorie ein (pro Karte,
+    dedupliziert nach Angebots-ID, kompaktes Format [Preis, JJMMTT]), entfernt Eintraege, die
+    seit HISTORY_MAX_DAYS nicht mehr gesehen wurden (vermutlich verkauft/entfernt) und kappt
+    jede Karte auf HISTORY_MAX_PER_KEY (neueste zuerst)."""
+    today = datetime.now().strftime("%y%m%d")
+    for c in cards:
+        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL * 2):
+            continue
+        history.setdefault(c["key"], {})[c["id"]] = [c["total"], today]
+    cutoff = (datetime.now().timestamp() - HISTORY_MAX_DAYS * 86400)
+    for key in list(history.keys()):
+        bucket = history[key]
+        for lid in list(bucket.keys()):
+            try:
+                ts = datetime.strptime(bucket[lid][1], "%y%m%d").timestamp()
+            except Exception:
+                ts = 0
+            if ts < cutoff:
+                del bucket[lid]
+        if len(bucket) > HISTORY_MAX_PER_KEY:
+            keep = sorted(bucket.items(), key=lambda kv: kv[1][1], reverse=True)[:HISTORY_MAX_PER_KEY]
+            history[key] = dict(keep)
+        if not history[key]:
+            del history[key]
 
 
 def load_state():
     if RESET or not os.path.exists(STATE_FILE):
-        return {"seen": {}}
+        return {"seen": {}, "history": {}}
     try:
-        return json.load(open(STATE_FILE, encoding="utf-8"))
+        st = json.load(open(STATE_FILE, encoding="utf-8"))
+        st.setdefault("seen", {})
+        st.setdefault("history", {})
+        return st
     except Exception:
-        return {"seen": {}}
+        return {"seen": {}, "history": {}}
 
 
 def save_state(st):
-    json.dump(st, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    json.dump(st, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 
 
 def post_discord(webhook, deals):
@@ -360,19 +681,22 @@ def post_discord(webhook, deals):
     for d in deals:
         pct = int(round((1 - d["ratio"]) * 100))
         flag = "\U0001F1EF\U0001F1F5 " if d.get("is_jp") else ""
-        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f})\n"
-                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}) - Zustand/Grade: **{d['grade']}**\n"
+        star = "⭐ " if "Gold Star" in d["tags"] else ""
+        tags = ", ".join(d["tags"]) if d["tags"] else "-"
+        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f}{' GESCHAETZT' if d.get('ship_est') else ''})\n"
+                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}, Aera {d['era']}) - Zustand/Grade: **{d['grade']}**\n"
+                f"Merkmale: {tags}\n"
                 f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
-                f"**{pct} % unter Median** (Median CHF {d['median']:.2f} aus {d['n']} aktuellen Angeboten)\n"
+                f"**{pct} % unter Median** (Median CHF {d['median']:.2f} aus {d['n']} anderen Angeboten inkl. Preishistorie)\n"
                 f"[Zum Angebot]({d['url']})")
-        color = 0x2ECC71 if pct >= 40 else 0xF1C40F
+        color = 0xFFD700 if "Gold Star" in d["tags"] else (0x2ECC71 if pct >= 40 else 0xF1C40F)
         embeds.append({
-            "title": (flag + d["title"])[:240],
+            "title": (flag + star + d["title"])[:240],
             "url": d["url"],
             "description": desc,
             "color": color,
             "image": {"url": d["img"]} if d["img"] else None,
-            "footer": {"text": f"eBay.ch Sofort-Kaufen - gefunden {datetime.now():%d.%m.%Y %H:%M} - Suche: {d.get('query', '')}"},
+            "footer": {"text": f"eBay.ch Sofort-Kaufen - gefunden {datetime.now():%d.%m.%Y %H:%M} - Suche: {d.get('query', '')}"[:2000]},
         })
     for e in embeds:
         if e["image"] is None:
@@ -380,7 +704,7 @@ def post_discord(webhook, deals):
     for i in range(0, len(embeds), 6):
         payload = {"username": "CHAU Vintage-Deal-Finder", "embeds": embeds[i:i + 6]}
         data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(webhook, data=data, headers={"Content-Type": "application/json", "User-Agent": "chau-deal-finder/1.0"})
+        req = urllib.request.Request(webhook, data=data, headers={"Content-Type": "application/json", "User-Agent": "chau-deal-finder/2.0"})
         with urllib.request.urlopen(req) as r:
             log(f"Discord {r.status} ({len(embeds[i:i + 6])} Embeds)")
         time.sleep(1.5)
@@ -401,10 +725,8 @@ def main():
     try:
         webhook = os.environ.get("DISCORD_WEBHOOK_HOLO") or ""
         if not webhook and not DRY_RUN and os.name == "nt":
-            # Lokal (Windows) steht der Webhook als persistente User-Umgebungsvariable, die ein
-            # laufender Prozess (z.B. der Windows-Scheduled-Task) nicht automatisch sieht, wenn
-            # sie erst NACH dem Start des Prozesses gesetzt wurde. In der Cloud (Linux) kommt der
-            # Webhook ausschliesslich ueber das echte os.environ (GitHub Actions Secret).
+            # Lokal (Windows) steht der Webhook als persistente User-Umgebungsvariable; in der
+            # Cloud (Linux) kommt er ausschliesslich ueber os.environ (GitHub Actions Secret).
             import subprocess
             webhook = subprocess.run(["powershell", "-NoProfile", "-Command", "[Environment]::GetEnvironmentVariable('DISCORD_WEBHOOK_HOLO','User')"],
                                      capture_output=True, text=True).stdout.strip()
@@ -414,16 +736,23 @@ def main():
         st = load_state()
         items = fetch_all()
         cards = classify(items)
-        deals = find_deals(cards)
+        # find_deals() nutzt die BISHERIGE Historie (Stand vor diesem Lauf) - erst danach wird der
+        # aktuelle Lauf in die Historie eingetragen.
+        deals = find_deals(cards, st["history"])
         log(f"{len(items)} Angebote geladen, {len(cards)} klassifiziert, {len(deals)} Deals gesamt")
+        by_era = {}
+        for c in cards:
+            by_era[c["era"]] = by_era.get(c["era"], 0) + 1
+        log("Klassifiziert pro Aera: " + ", ".join(f"{k}={v}" for k, v in sorted(by_era.items())))
         new = [d for d in deals if d["id"] not in st["seen"]][:MAX_POSTS_PER_RUN]
-        for d in deals[:25]:
-            log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}{d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
+        for d in deals[:30]:
+            log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}T{d['tier']} {d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
         if DRY_RUN:
             log(f"Dry-Run: {len(new)} neue Deals wuerden gepostet.")
             return
         if new:
             post_discord(webhook, new)
+        update_history(st["history"], cards)
         for d in new:
             st["seen"][d["id"]] = datetime.now().strftime("%Y-%m-%d")
         # alte Eintraege nach 60 Tagen vergessen
