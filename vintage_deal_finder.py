@@ -63,6 +63,7 @@ RESET = "--reset" in sys.argv
 # ---------------------------------------------------------------- Einstellungen
 MIN_TOTAL = 20.0        # CHF inkl. Versand (Karten ab ca. 2003 sind guenstiger als WOTC-Holos)
 MAX_TOTAL = 250.0       # CHF inkl. Versand (Kunde zahlt 100-300, Marge muss drin sein)
+MAX_TOTAL_GOLD = 600.0  # Gold Stars kosten roh meist 300-1500 CHF - mit 250 CHF faellt jede echte durchs Fenster
 DEAL_RATIO = 0.72       # Preis <= 72 % des Medians der ANDEREN Angebote gleicher Karte/Variante
 MIN_SAMPLES = 3         # mind. so viele ANDERE Vergleichsangebote (inkl. Historie)
 MIN_MEDIAN = 40.0       # Marktwert (Median) mind. so hoch, sonst fuer den 100-300-CHF-Kunden uninteressant
@@ -207,7 +208,7 @@ SETS = [
     # Promos VOR den generischen Serien-Namen (sonst wird "XY Black Star Promo" als Set "XY" erkannt
     # und dieselbe Karte landet in zwei Toepfen); der Promo-Code (XY69, DP47, ...) wird Teil des
     # Set-Namens, weil z.B. Rayquaza EX XY69 (Shiny) und XY73 voellig verschiedene Preise haben.
-    ("Black Star Promo", r"black\s*star\s*promo|\b(?:xy|bw|dp|hgss)\s*-?\s*\d{2,3}(?!\s*/)\b", "Promo"),
+    ("Black Star Promo", r"black\s*star\s*promo|promo\s*black\s*star|\b(?:xy|bw|dp|hgss)\s*-?\s*\d{2,3}(?!\s*/)\b", "Promo"),
     # ---- generische Serien-Namen (erst nach allen spezifischen Sets und Promos)
     ("Platinum", r"\bplatinum\b", "DP/Pt"),
     ("Diamond & Pearl", r"diamond\s*(?:&|and)?\s*pearl", "DP/Pt"),
@@ -299,6 +300,8 @@ EXCLUDE = re.compile(
     r"x\s?\d{1,2}(?!\s*/)\b|\d{1,2}\s?x\b|"
     r"karten\s?set|complete set|komplett|sleeve|binder|booster|pack\b|box\b|deck\b|tin\b|display|case\b|starter|"
     r"spanish|espa[nñ]ol|italian|italiano|french|fran[cç]ais|german|deutsch|portugu|korean|chinese|"
+    r"spanisch|italienisch|franz[oö]sisch|portugiesisch|polnisch|koreanisch|chinesisch|russisch|"
+    r"ita|spa|fra|kor|chn|ger|anglais|"
     r"\bde\b|\bfr\b|\bit\b|\bes\b|coin|m[uü]nze|sticker|topps|carddass|bandai|meiji|amada|ensky|"
     r"jumbo|oversize[d]?|poster|figur(?:e|ine)?|plush|badge|magnet|puzzle|folder|album|portfolio|"
     r"code\b|codes\b|tcgo|ptcgo|mystery(?!\s+of\s+the)|surprise|grab\s*bag|random|zufall|[uü]berraschung|empty|leer)\b",
@@ -316,14 +319,20 @@ MODERN = re.compile(
     r"forbidden\s*light|ultra\s*prism|crimson\s*invasion|burning\s*shadows|guardians\s*rising|"
     r"detective\s*pikachu|lost\s*origin|astral\s*radiance|brilliant\s*stars|fusion\s*strike|"
     r"battle\s*styles|chilling\s*reign|vivid\s*voltage|darkness\s*ablaze|rebel\s*clash|"
-    r"mega\s*evolution|phantasmal|ascended\s*heroes|black\s*bolt|white\s*flare|perfect\s*order|chaos\s*rising|"
+    r"svp\w*|mep\b|30th|25th|mega\s*evolution|phantasmal|ascended\s*heroes|black\s*bolt|white\s*flare|perfect\s*order|chaos\s*rising|"
     r"mega\s*brave|mega\s*symphonia|illustration\s*rare|special\s*illustration|alt(?:ernate)?\s*art|"
     r"trainer\s*gallery|pokemon\s*go|pgo|151|20(?:1[7-9]|2\d))\b|\bradiant\s+(?!collection)|\bv\b",
     re.I,
 )
 NONHOLO = re.compile(r"non[\s-]?holo|no[\s-]?holo|nicht[\s-]?holo|\bregular\b|\bcommon\b|uncommon|reverse", re.I)
-# PSA-gegradete Karten gehoeren in den PSA-Bot (#psa-vintage-deals), nicht hierher.
+# PSA-gegradete Karten gehoeren in den PSA-Bot (#psa-vintage-deals), nicht hierher. Auch ein
+# nacktes "PSA" ohne Grade-Zahl im Titel/Zustandsfeld gilt als gegradet - ausser es steht
+# ausdruecklich "no PSA", "PSA ready", "for PSA" o.ae. (Karte ist ungegradet).
 PSA_GRADED = re.compile(r"\bpsa\s*-?\s*(10|[1-9])(?!\.?\d)\b", re.I)
+PSA_WORD = re.compile(r"\bpsa\b", re.I)
+PSA_NEG = re.compile(
+    r"\b(?:no|not|ungraded|raw|for|ready|worthy|potential|candidate|gradeable|grade[- ]?able)\s*-?\s*psa\b|"
+    r"\bpsa[- ]?(?:ready|worthy|candidate|potential|grading)\b", re.I)
 
 GOLD_STAR_RE = re.compile(r"gold\s*star|☆|★")
 COND_STRIP = re.compile(
@@ -357,6 +366,11 @@ def detect_set(t):
                 pc = PROMO_CODE_RE.search(t)
                 if pc:
                     name = f"Promo {pc.group(1).upper()}{pc.group(2)}"
+                else:
+                    # WOTC-Promos (Mew #8/#9, Pikachu #1 ...): Nummer aus "#9" im Titel
+                    pn = re.search(r"#\s*(\d{1,3})\b", t)
+                    if pn:
+                        name = f"Black Star Promo #{pn.group(1)}"
             return name, era, m
     return None, None, None
 
@@ -385,7 +399,11 @@ def is_gold_star(tt, base):
 def detect_variant(tt, base, era=None):
     """(Variante fuer den Vergleichsschluessel, Tag-Liste fuer die Anzeige)."""
     tags = []
-    gold = is_gold_star(tt, base)
+    # Gold Stars gibt es nur in der EX-Aera (inkl. POP-Serie und japanischen ADV/PCG-Serien). In
+    # allen anderen Aeren ist "Gold Star" im Titel Keyword-Spam ("... BGS No Shining Goldstar") -
+    # und "No (Shining) Gold Star" heisst ausdruecklich: KEINE Gold Star.
+    tt_ng = re.sub(r"\bno\s+(?:shining\s+)?gold\s*star\b", " ", tt)
+    gold = era == "EX" and is_gold_star(tt_ng, base)
     if gold:
         tags.append("Gold Star")
     key_variant = "Gold Star" if gold else None
@@ -527,8 +545,9 @@ def fetch_all():
         ctx = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900})
         page = ctx.new_page()
         for q in SEARCHES:
+            hi = (MAX_TOTAL_GOLD if "gold star" in q else MAX_TOTAL) + 60
             url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
-                   f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(MAX_TOTAL) + 60}&_ipg=240")
+                   f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(hi)}&_ipg=240")
             rows = []
             for attempt in range(3):
                 try:
@@ -576,7 +595,7 @@ def classify(items):
         if MODERN.search(t):
             _drop("modern(ab 2017)", t)
             continue
-        if PSA_GRADED.search(full_text):
+        if PSA_GRADED.search(full_text) or (PSA_WORD.search(full_text) and not PSA_NEG.search(full_text)):
             _drop("psa(eigener bot)", t)
             continue
         price = parse_chf(r["p"])
@@ -653,7 +672,7 @@ def find_deals(cards, history):
         pool.setdefault(c["key"], {})[c["id"]] = c["total"]
     deals = []
     for c in cards:
-        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL):
+        if not (MIN_TOTAL <= c["total"] <= (MAX_TOTAL_GOLD if c["tier"] == 0 else MAX_TOTAL)):
             continue
         # Referenz OHNE das Angebot selbst (sonst zieht der eigene Preis den Median nach unten)
         others = [t for lid, t in pool[c["key"]].items() if lid != c["id"]]
@@ -675,7 +694,7 @@ def update_history(history, cards):
     jede Karte auf HISTORY_MAX_PER_KEY (neueste zuerst)."""
     today = datetime.now().strftime("%y%m%d")
     for c in cards:
-        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL * 2):
+        if not (MIN_TOTAL <= c["total"] <= (MAX_TOTAL_GOLD * 2 if c["tier"] == 0 else MAX_TOTAL * 2)):
             continue
         history.setdefault(c["key"], {})[c["id"]] = [c["total"], today]
     cutoff = (datetime.now().timestamp() - HISTORY_MAX_DAYS * 86400)
