@@ -328,7 +328,7 @@ MODERN = re.compile(
     r"trainer\s*gallery|pokemon\s*go|pgo|151|20(?:1[7-9]|2\d))\b|\bradiant\s+(?!collection)|\bv\b",
     re.I,
 )
-NONHOLO = re.compile(r"non[\s-]?holo|no[\s-]?holo|nicht[\s-]?holo|\bregular\b|\bcommon\b|uncommon|reverse", re.I)
+NONHOLO = re.compile(r"non[\s-]*holo|no[\s-]?holo|nicht[\s-]?holo|\bregular\b|\bcommon\b|uncommon|reverse", re.I)
 # PSA-gegradete Karten gehoeren in den PSA-Bot (#psa-vintage-deals), nicht hierher. Auch ein
 # nacktes "PSA" ohne Grade-Zahl im Titel/Zustandsfeld gilt als gegradet - ausser es steht
 # ausdruecklich "no PSA", "PSA ready", "for PSA" o.ae. (Karte ist ungegradet).
