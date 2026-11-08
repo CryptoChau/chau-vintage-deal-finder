@@ -65,7 +65,9 @@ MIN_TOTAL = 20.0        # CHF inkl. Versand (Karten ab ca. 2003 sind guenstiger 
 MAX_TOTAL = 250.0       # CHF inkl. Versand (Kunde zahlt 100-300, Marge muss drin sein)
 MAX_TOTAL_GOLD = 600.0  # Gold Stars kosten roh meist 300-1500 CHF - mit 250 CHF faellt jede echte durchs Fenster
 DEAL_RATIO = 0.72       # Preis <= 72 % des Medians der ANDEREN Angebote gleicher Karte/Variante
-MIN_SAMPLES = 3         # mind. so viele ANDERE Vergleichsangebote (inkl. Historie)
+MIN_SAMPLES = 4         # mind. so viele ANDERE Vergleichsangebote (inkl. Historie); Gold Stars: MIN_SAMPLES_GOLD
+MIN_SAMPLES_GOLD = 3
+DEAL_RATIO_THIN = 0.62  # bei weniger als 8 Vergleichsangeboten strengere Schwelle
 MIN_MEDIAN = 40.0       # Marktwert (Median) mind. so hoch, sonst fuer den 100-300-CHF-Kunden uninteressant
 MAX_POSTS_PER_RUN = 15
 PAGE_WAIT_MS = 2500
@@ -151,6 +153,7 @@ SETS = [
     ("EX Hidden Legends", _EX + r"hidden\s*legends", "EX"),
     ("EX FireRed & LeafGreen", _EX + r"fire\s*red\s*(?:&|and)?\s*leaf\s*green|\bfrlg\b", "EX"),
     ("EX Deoxys", r"\bex\s*deoxys\b", "EX"),
+    ("XY Emerald Break", r"emerald\s*break", "XY"),
     ("EX Emerald", _EX + r"\bemerald\b", "EX"),
     ("EX Unseen Forces", _EX + r"unseen\s*forces", "EX"),
     ("EX Delta Species", _EX + r"delta\s*species", "EX"),
@@ -208,6 +211,7 @@ SETS = [
     # Promos VOR den generischen Serien-Namen (sonst wird "XY Black Star Promo" als Set "XY" erkannt
     # und dieselbe Karte landet in zwei Toepfen); der Promo-Code (XY69, DP47, ...) wird Teil des
     # Set-Namens, weil z.B. Rayquaza EX XY69 (Shiny) und XY73 voellig verschiedene Preise haben.
+    ("JP Promo", r"\d{1,3}\s*/\s*(?:xy|bw|dpt?|hgss|adv|pcg|l)\s*-?\s*p\b", "Promo"),
     ("Black Star Promo", r"black\s*star\s*promo|promo\s*black\s*star|\b(?:xy|bw|dp|hgss)\s*-?\s*\d{2,3}(?!\s*/)\b", "Promo"),
     # ---- generische Serien-Namen (erst nach allen spezifischen Sets und Promos)
     ("Platinum", r"\bplatinum\b", "DP/Pt"),
@@ -319,7 +323,7 @@ MODERN = re.compile(
     r"forbidden\s*light|ultra\s*prism|crimson\s*invasion|burning\s*shadows|guardians\s*rising|"
     r"detective\s*pikachu|lost\s*origin|astral\s*radiance|brilliant\s*stars|fusion\s*strike|"
     r"battle\s*styles|chilling\s*reign|vivid\s*voltage|darkness\s*ablaze|rebel\s*clash|"
-    r"svp\w*|mep\b|30th|25th|mega\s*evolution|phantasmal|ascended\s*heroes|black\s*bolt|white\s*flare|perfect\s*order|chaos\s*rising|"
+    r"\d{1,3}\s*/\s*(?:sm|sv|s|m)\s*-\s*p|svp\w*|mep\b|30th|25th|mega\s*evolution|phantasmal|ascended\s*heroes|black\s*bolt|white\s*flare|perfect\s*order|chaos\s*rising|"
     r"mega\s*brave|mega\s*symphonia|illustration\s*rare|special\s*illustration|alt(?:ernate)?\s*art|"
     r"trainer\s*gallery|pokemon\s*go|pgo|151|20(?:1[7-9]|2\d))\b|\bradiant\s+(?!collection)|\bv\b",
     re.I,
@@ -351,7 +355,7 @@ VARIANT_TAGS = [
     ("Delta", re.compile(r"δ|\bdelta\b")),
 ]
 HOLO_RE = re.compile(r"\bholo(?:foil|graphic)?\b")
-FIRST_ED_RE = re.compile(r"1st\s*ed|first\s*edition|(?<![0-9a-z])1st(?![0-9a-z])")
+FIRST_ED_RE = re.compile(r"1st\s*ed|first\s*edition|(?<![0-9a-z])1st(?![0-9a-z])|1\.?\s*edition|erstauflage|(?<![0-9a-z])1ed(?![0-9a-z])")
 
 
 PROMO_CODE_RE = re.compile(r"\b(xy|bw|dp|hgss)\s*-?\s*(\d{2,3})(?!\s*/)\b")
@@ -362,7 +366,10 @@ def detect_set(t):
     for name, rx, era in SETS_C:
         m = rx.search(t)
         if m:
-            if name == "Black Star Promo":
+            if name == "JP Promo":
+                jm = re.search(r"(\d{1,3})\s*/\s*(xy|bw|dpt?|hgss|adv|pcg|l)\s*-?\s*p\b", t)
+                name = f"JP Promo {jm.group(2).upper()}-P #{int(jm.group(1))}"
+            elif name == "Black Star Promo":
                 pc = PROMO_CODE_RE.search(t)
                 if pc:
                     name = f"Promo {pc.group(1).upper()}{pc.group(2)}"
@@ -650,14 +657,15 @@ def classify(items):
     return out
 
 
-def reference_price(vals):
+def reference_price(vals, min_samples=None):
     """Robuster Referenzpreis: Median, nach Entfernen von Ausreissern (>2.5x oder <0.4x des
     Roh-Medians) nochmals Median. None, wenn danach zu wenig Angebote uebrig sind."""
-    if len(vals) < MIN_SAMPLES:
+    ms = min_samples or MIN_SAMPLES
+    if len(vals) < ms:
         return None, 0
     raw = statistics.median(vals)
     kept = [v for v in vals if 0.4 * raw <= v <= 2.5 * raw]
-    if len(kept) < MIN_SAMPLES:
+    if len(kept) < ms:
         return None, len(kept)
     return statistics.median(kept), len(kept)
 
@@ -676,10 +684,10 @@ def find_deals(cards, history):
             continue
         # Referenz OHNE das Angebot selbst (sonst zieht der eigene Preis den Median nach unten)
         others = [t for lid, t in pool[c["key"]].items() if lid != c["id"]]
-        med, n = reference_price(others)
+        med, n = reference_price(others, MIN_SAMPLES_GOLD if c["tier"] == 0 else MIN_SAMPLES)
         if med is None or med < MIN_MEDIAN:
             continue
-        if c["total"] <= DEAL_RATIO * med:
+        if c["total"] <= (DEAL_RATIO if n >= 8 else DEAL_RATIO_THIN) * med:
             deals.append(dict(c, median=round(med, 2), n=n, ratio=round(c["total"] / med, 2)))
     # Gold Stars zuerst, dann beliebte seltene Karten, dann der Rest; innerhalb einer Stufe
     # japanische Verkaeufer zuerst, danach groesster Abstand zum Median.
