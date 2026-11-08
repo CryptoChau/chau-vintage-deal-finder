@@ -2,7 +2,9 @@ name: CHAU PSA Vintage Deal Finder
 
 # Laeuft alle 2 Stunden (versetzt zu den beiden bestehenden Workflows, die auf Minute 6 und 36
 # laufen) und postet PSA-gegradete (PSA 1-10) Vintage-Pokemon-Einzelkarten-Deals von eBay.ch in
-# Discord (#psa-vintage-deals). Kein BGS/CGC/ungegradet - siehe psa_vintage_deal_finder.py.
+# Discord (#psa-vintage-deals) ueber DISCORD_WEBHOOK_PSA. Kein BGS/CGC/ungegradet.
+# Nur ein manueller workflow_dispatch mit post_to_vintage=true schickt stattdessen an
+# #ebay-vintage-deals ueber DISCORD_WEBHOOK_HOLO. Schedules bleiben beim PSA-Webhook.
 on:
   schedule:
     - cron: "21 */2 * * *"
@@ -10,6 +12,10 @@ on:
     inputs:
       dry_run:
         description: "Nur testen (kein Discord-Post, kein State-Commit)"
+        type: boolean
+        default: false
+      post_to_vintage:
+        description: "Manuell: an #ebay-vintage-deals (DISCORD_WEBHOOK_HOLO) statt #psa-vintage-deals. Schedules ignorieren das."
         type: boolean
         default: false
 
@@ -40,7 +46,10 @@ jobs:
 
       - name: Run PSA deal finder (xvfb = virtueller Bildschirm fuer echten Headed-Chromium)
         env:
-          DISCORD_WEBHOOK_PSA: ${{ secrets.DISCORD_WEBHOOK_PSA }}
+          # Schedule und normaler Handlauf: DISCORD_WEBHOOK_PSA.
+          # post_to_vintage gilt nur fuer workflow_dispatch und legt denselben
+          # Script-Namen auf DISCORD_WEBHOOK_HOLO. Der Wert wird nicht ausgegeben.
+          DISCORD_WEBHOOK_PSA: ${{ (github.event_name == 'workflow_dispatch' && inputs.post_to_vintage == true) && secrets.DISCORD_WEBHOOK_HOLO || secrets.DISCORD_WEBHOOK_PSA }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
         run: |
           ARGS=""
@@ -48,22 +57,8 @@ jobs:
           xvfb-run -a --server-args="-screen 0 1280x900x24" python psa_vintage_deal_finder.py $ARGS
 
       - name: Persist psa_state.json
+        if: ${{ github.event_name != 'workflow_dispatch' || inputs.dry_run != true }}
         run: |
           git config user.name "chau-deal-finder-bot"
           git config user.email "actions@users.noreply.github.com"
-          cp psa_state.json /tmp/state_fresh.json 2>/dev/null || true
-          git add psa_state.json 2>/dev/null || true
-          git diff --cached --quiet || git commit -m "Update PSA state [skip ci]"
-          for i in 1 2 3 4 5; do
-            if git push; then
-              exit 0
-            fi
-            echo "Push rejected, retrying ($i/5) ..."
-            git fetch origin main
-            git reset --hard origin/main
-            cp /tmp/state_fresh.json psa_state.json 2>/dev/null || true
-            git add psa_state.json 2>/dev/null || true
-            git diff --cached --quiet || git commit -m "Update PSA state [skip ci]"
-          done
-          echo "Push failed after 5 retries" >&2
-          exit 1
+          sh scripts/persist_branch_state.sh psa_state.json "Update PSA state [skip ci]"

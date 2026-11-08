@@ -42,6 +42,23 @@ class PersistBranchStateTests(unittest.TestCase):
         self.assertIn('git push origin "HEAD:${BRANCH}"', script)
         self.assertIn('git reset --hard "origin/${BRANCH}"', script)
 
+    def test_psa_workflow_persists_on_its_branch_and_keeps_schedule_webhook(self):
+        path = os.path.join(ROOT, ".github", "workflows", "psa-finder.yml")
+        with open(path, encoding="utf-8") as fh:
+            workflow = fh.read()
+        self.assertNotIn("origin/main", workflow)
+        self.assertNotIn("reset --hard origin/main", workflow)
+        self.assertNotIn("fetch origin main", workflow)
+        self.assertNotIn("git push", workflow)
+        self.assertIn("scripts/persist_branch_state.sh psa_state.json", workflow)
+        self.assertIn("inputs.dry_run != true", workflow)
+        self.assertIn("post_to_vintage:", workflow)
+        self.assertIn("default: false", workflow)
+        self.assertIn("github.event_name == 'workflow_dispatch' && inputs.post_to_vintage == true", workflow)
+        self.assertIn("secrets.DISCORD_WEBHOOK_HOLO", workflow)
+        self.assertIn("secrets.DISCORD_WEBHOOK_PSA", workflow)
+        self.assertIn('cron: "21 */2 * * *"', workflow)
+
     def test_rejected_push_retries_feature_branch_and_leaves_main(self):
         tmp = tempfile.mkdtemp(prefix="persist-state-")
         try:
