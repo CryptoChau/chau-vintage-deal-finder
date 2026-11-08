@@ -18,8 +18,11 @@ Zweiter Bot, sucht auf eBay.ch UND Ricardo.ch nach einzelnen versiegelten Booste
 
 ## PSA-Vintage-Deal-Finder
 
-Dritter Bot, sucht auf eBay.ch ausschliesslich nach PSA-gegradeten (PSA 1-10) Vintage-
-Einzelkarten (gleiche Sets/Aera wie oben). Der exakte PSA-Grade ist zwingender Teil des
-Vergleichsschluessels (nie unterschiedliche Grades im selben Preisvergleich mischen) und
-postet in `#psa-vintage-deals`. Details siehe `psa_vintage_deal_finder.py` und
-`.github/workflows/psa-finder.yml`.
+Dritter Bot, sucht auf eBay.ch ausschliesslich nach PSA-gegradeten (PSA 1-10) Pokemon-Einzelkarten
+aus allen Aeren von 1996 bis 2016 (WOTC, e-Card, EX-Aera inkl. Gold Stars, Diamond & Pearl,
+Platinum, HGSS, Black & White, XY; Holos, Reverse Holos, Gold Stars, beliebte und seltene Karten),
+Preisfenster 20-200 CHF. Die Erkennung (Sets/Aeren, Namen, Varianten) kommt aus
+`vintage_deal_finder.py`. Der exakte PSA-Grade ist Teil des Vergleichsschluessels. Postet Ideen,
+die deutlich unter den anderen aktuellen Angeboten liegen, in `#psa-vintage-deals` - ausdruecklich
+KEIN Marktwert (eBay-Verkaufspreise brauchen Login), bitte in Collectr gegenpruefen. Details siehe
+`psa_vintage_deal_finder.py` und `.github/workflows/psa-finder.yml`.
