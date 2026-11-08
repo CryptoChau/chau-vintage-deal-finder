@@ -220,8 +220,8 @@ def classify(items):
             continue
         tn_wo_set = (tn[:sm.start()] + " " + tn[sm.end():]) if sm else tn
         disp_name, base = v.detect_name(tn_wo_set)
-        if not disp_name:
-            disp_name, base = v.detect_name(tn)
+        # Kein Fallback auf den vollen Titel: steckt der Name nur im Set-Namen ("EX Deoxys"), ist die
+        # Karte keine Pokemon-Karte dieses Namens (Bug 2026-11-08: "Heal/Scramble Energy" als "Deoxys").
         if not disp_name:
             continue
         tt = v.COND_STRIP.sub(" ", tn_wo_set)
