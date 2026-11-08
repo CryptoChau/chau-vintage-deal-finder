@@ -30,6 +30,7 @@ gestartet (lokal ausserhalb des Bildschirms, in der Cloud unter xvfb).
 import json
 import os
 import re
+import signal
 import statistics
 import sys
 import time
@@ -57,8 +58,9 @@ MIN_SAMPLES = 4         # mind. so viele andere Vergleichsangebote (inkl. Histor
 MIN_MEDIAN = 15.0
 MAX_POSTS_PER_RUN = 12
 PAGE_WAIT_MS = 2500
+SEARCH_HARD_LIMIT_S = 240  # harte Grenze pro Suche inkl. Wiederholungen
 HISTORY_MAX_DAYS = 120  # so lange bleibt ein nicht mehr gesehenes Angebot als Preisreferenz erhalten
-FETCH_BUDGET_S = 1200   # Zeitbudget fuer alle eBay-Suchen (Rest wird im naechsten Lauf wieder erreicht)
+FETCH_BUDGET_S = 960    # Zeitbudget fuer alle eBay-Suchen (Rest wird im naechsten Lauf wieder erreicht)
 
 # Suchen: die Suchbegriffe des rohen Bots, aber "holo" raus (PSA-Titel nennen es oft nicht) und
 # "psa" dazu. Gold Stars zuerst (hoechste Prioritaet), danach in Reihenfolge der Aeren.
@@ -114,42 +116,77 @@ def log(msg):
         fh.write(line + "\n")
 
 
+class _SearchTimeout(Exception):
+    pass
+
+
+def _on_alarm(signum, frame):
+    raise _SearchTimeout()
+
+
 def fetch_all():
+    """Alle eBay-Suchen. Harte Zeitgrenze pro Suche (signal.alarm, nur Linux/Cloud): haengt ein
+    Seitenaufruf (2026-11-08: Lauf blockierte >36 Min), wird abgebrochen und mit den bis dahin
+    gesammelten Angeboten weitergemacht."""
     items = {}
     launch_args = ["--window-size=1280,900"]
     if os.name == "nt":
         launch_args.insert(0, "--window-position=-2400,-2400")
+    has_alarm = hasattr(signal, "SIGALRM")
+    if has_alarm:
+        signal.signal(signal.SIGALRM, _on_alarm)
     t0 = time.time()
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, args=launch_args)
-        page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
-        for q in SEARCHES:
-            if time.time() - t0 > FETCH_BUDGET_S:
-                log("Zeitbudget fuer eBay-Suchen aufgebraucht, restliche Suchen im naechsten Lauf")
-                break
-            url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
-                   f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(MAX_TOTAL) + 60}&_ipg=240")
-            rows = []
-            for attempt in range(3):
-                try:
-                    page.goto(url, timeout=60000, wait_until="domcontentloaded")
-                    page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
-                    rows = page.evaluate(v.EXTRACT_JS)
-                except Exception as e:
-                    log(f"Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
-                if rows:
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=False, args=launch_args)
+            page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
+            page.set_default_timeout(45000)
+            for q in SEARCHES:
+                if time.time() - t0 > FETCH_BUDGET_S:
+                    log("Zeitbudget fuer eBay-Suchen aufgebraucht, restliche Suchen im naechsten Lauf")
                     break
-                time.sleep(3)
-            new = 0
-            for r in rows:
-                if r["id"] not in items:
-                    r["query"] = q
-                    items[r["id"]] = r
-                    new += 1
-            log(f"'{q}': {len(rows)} Treffer, {new} neu")
-            time.sleep(1.0)
-        browser.close()
+                url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
+                       f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(MAX_TOTAL) + 60}&_ipg=240")
+                rows = []
+                try:
+                    if has_alarm:
+                        signal.alarm(SEARCH_HARD_LIMIT_S)
+                    for attempt in range(3):
+                        try:
+                            page.goto(url, timeout=45000, wait_until="domcontentloaded")
+                            page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
+                            rows = page.evaluate(v.EXTRACT_JS)
+                        except _SearchTimeout:
+                            raise
+                        except Exception as e:
+                            log(f"Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
+                        if rows:
+                            break
+                        time.sleep(3)
+                except _SearchTimeout:
+                    log(f"Suche haengt (> {SEARCH_HARD_LIMIT_S}s), Abbruch: '{q}'")
+                    break
+                finally:
+                    if has_alarm:
+                        signal.alarm(0)
+                new = 0
+                for r in rows:
+                    if r["id"] not in items:
+                        r["query"] = q
+                        items[r["id"]] = r
+                        new += 1
+                log(f"'{q}': {len(rows)} Treffer, {new} neu")
+                time.sleep(1.0)
+            if has_alarm:
+                signal.alarm(60)
+            browser.close()
+    except _SearchTimeout:
+        log("Browser reagiert nicht mehr, weiter mit den bisherigen Angeboten")
+    finally:
+        if has_alarm:
+            signal.alarm(0)
     return items
+
 
 
 def classify(items):
