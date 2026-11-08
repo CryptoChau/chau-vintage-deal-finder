@@ -2,21 +2,21 @@
 """
 CHAU PSA-Vintage-Ideen (Karten bis 2016)
 ========================================
-Durchsucht eBay.ch (Sofort-Kaufen) ausschliesslich nach PSA-gegradeten (PSA 1-10) Pokemon-
-Einzelkarten aus ALLEN Aeren von 1996 bis 2016 (WOTC, e-Card, EX-Aera inkl. Gold Stars, Diamond &
-Pearl, Platinum, HGSS, Black & White, XY; englisch + japanisch; Holos, Reverse Holos, Gold Stars,
-beliebte und seltene Karten) und schlaegt Angebote vor, die deutlich UNTER dem Median der anderen
-aktuellen Angebote derselben Karte liegen (plus Preishistorie fruehere Laeufe).
+Durchsucht eBay.ch (Sofort-Kaufen) nach PSA-gegradeten Pokemon-Einzelkarten bis 2016.
+Bestaetigt wird nur ein belegter Gesamtpreis unter CHF 200 und unter dem Median echter
+Verkaeufe derselben Identitaet. Angebotspreise und Preishistorie sind kein Median.
 
-Die Erkennung (Sets mit Aera, Pokemon-Namen, Varianten wie Gold Star/EX/LV.X/Prime/BREAK) kommt
-aus vintage_deal_finder.py - beide Bots nutzen dieselbe Logik.
+Die Erkennung und die Bestaetigung kommen aus vintage_deal_finder.py und
+deal_validation.py. Dieselbe Identitaet (Nummer, Set, Jahr, Sprache, Finish,
+Edition, Variante, exakter PSA-Grade) gilt fuer beide Bots.
 
 WICHTIG
-- Nur PSA (kein BGS/CGC/ungegradet). Der EXAKTE Grade ist Teil des Vergleichsschluessels
-  (Set + Karte + Variante + Sprache + Grade), PSA 9 und PSA 10 werden nie gemischt.
-- Das sind VORSCHLAEGE, kein Marktwert: Sofort-Kaufen-Preise sind Wunschpreise der Verkaeufer.
-  eBay-Verkaufspreise brauchen einen Login (nicht automatisierbar) - bitte in Collectr pruefen.
-- Preisfenster 20-200 CHF inkl. Versand (Nutzerwunsch 2026-11-08, gilt fuer alle Aeren).
+- Nur PSA 1-10. PSA 9 und PSA 10 werden nie gemischt. Ohne gelesenes Slab-Label
+  (diese Codebasis oeffnet das Foto nicht) bleibt die Karte unverified.
+- Angebotspreise und Preisguides sind kein Median. Bestaetigt wird nur ein
+  belegter Gesamtpreis unter CHF 200, inklusive bekanntem Versand und bekannter
+  Einfuhr, und nur unter dem Median echter Verkaeufe (mindestens 3, 90 sonst 180 Tage).
+- Kein Post, wenn nichts bestaetigt ist.
 
 Aufruf:
     python psa_vintage_deal_finder.py              -> normaler Lauf, postet neue Ideen
@@ -37,9 +37,8 @@ import urllib.parse
 import urllib.request
 from datetime import datetime
 
-from playwright.sync_api import sync_playwright
-
-import vintage_deal_finder as v  # gemeinsame Erkennung (Sets/Aeren, Namen, Varianten)
+import deal_validation as dv
+import vintage_deal_finder as v  # gemeinsame Erkennung und Verkaufspruefung
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, "psa_state.json")
@@ -81,8 +80,10 @@ def _build_searches():
         q += neg
         if q not in out:
             out.append(q)
-    gold = [q for q in out if "gold star" in q]
-    return gold + [q for q in out if q not in gold]
+    rare = [q for q in out if any(s in q for s in ("bulbasaur", "bisasam", "fushigidane"))]
+    gold = [q for q in out if "gold star" in q and q not in rare]
+    rest = [q for q in out if q not in rare and q not in gold]
+    return rare + gold + rest
 
 
 SEARCHES = _build_searches()
@@ -108,13 +109,14 @@ MAX_PER_KEY_PER_RUN = 2  # gleiche Karte (gleicher Schluessel) hoechstens 2x pro
 
 
 def log(msg):
-    line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
+    line = f"[{dv.zurich_stamp()}] {msg}"
     print(line)
     with open(LOG_FILE, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
 
 
 def fetch_all():
+    from playwright.sync_api import sync_playwright
     items = {}
     launch_args = ["--window-size=1280,900"]
     if os.name == "nt":
@@ -153,169 +155,85 @@ def fetch_all():
 
 
 def classify(items):
-    out = []
-    for r in items.values():
-        t = r["t"]
-        full_text = " ".join([t, r.get("sub", ""), r.get("full", "")])
-        if v.EXCLUDE.search(t) or NONHOLO_ONLY.search(t) or v.MODERN.search(t) or MODERN_EXTRA.search(v.norm(t)):
-            continue
-        # Nur PSA; andere Grader ohne PSA verwerfen.
-        if OTHER_GRADER.search(full_text) and not PSA_GRADE.search(full_text):
-            continue
-        # Titel und eBay-"Artikelzustand" muessen denselben PSA-Grade nennen (Bug 2026-10-06:
-        # Titel "PSA 9", Artikelzustand "Graded - PSA 8").
-        grades = set(PSA_GRADE.findall(full_text))
-        if len(grades) != 1:
-            continue
-        grade = f"PSA {grades.pop()}"
-        price = v.parse_chf(r["p"])
-        if price is None:
-            continue
-        ship = v.parse_shipping(r["s"])
-        # Fehlt der Versandpreis in der Trefferliste (v.a. Auslandsverkaeufer), Pauschale einrechnen.
-        ship_est = not re.search(r"CHF|kostenlos|gratis|free", r["s"] or "", re.I)
-        if ship_est:
-            ship = 8.0 if (r.get("country") or "").strip().lower() == "schweiz" else 25.0
-        total = round(price + ship, 2)
-        tn = v.norm(t)
-        sset, era, sm = v.detect_set(tn)
-        if not sset:
-            continue
-        tn_wo_set = (tn[:sm.start()] + " " + tn[sm.end():]) if sm else tn
-        disp_name, base = v.detect_name(tn_wo_set)
-        if not disp_name:
-            disp_name, base = v.detect_name(tn)
-        if not disp_name:
-            continue
-        tt = v.COND_STRIP.sub(" ", tn_wo_set)
-        variant, tags = v.detect_variant(tt, base, era)
-        rev = bool(REVERSE_RE.search(tn))
-        if rev:
-            tags = tags + ["Reverse Holo"]
-        lang = "JP" if v.is_japanese(t) else "EN"
-        key = f"{lang}|{sset}|{disp_name}|{variant}{'|RH' if rev else ''}|{grade}"
-        img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", r["img"] or "")
-        gold = "Gold Star" in tags
-        popular = base in v.POPULAR
-        rare = variant != "Std" or "Holo" in tags or rev
-        tier = 0 if gold else 1 if (popular and rare) else 2 if (popular or rare) else 3
-        out.append(dict(id=r["id"], title=t, price=price, ship=ship, ship_est=ship_est, total=total, name=disp_name,
-                        set=sset, era=era, grade=grade, lang=lang, variant=variant, tags=tags, key=key, tier=tier,
-                        img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
-                        query=r.get("query", ""), country=r.get("country", "") or "unbekannt",
-                        is_jp=v.is_japan_origin(r.get("country", ""))))
-    return out
+    """Dieselbe Identitaet wie der Roh-Bot, Modus PSA. Kein Pauschalversand."""
+    return v.classify(items, mode="psa")
 
 
-def reference_price(vals):
-    """Median, nach Entfernen von Ausreissern (>2.5x oder <0.4x des Roh-Medians) nochmals Median.
-    None, wenn danach zu wenig Angebote uebrig sind."""
-    if len(vals) < MIN_SAMPLES:
-        return None, 0
-    raw = statistics.median(vals)
-    kept = [x for x in vals if 0.4 * raw <= x <= 2.5 * raw]
-    if len(kept) < MIN_SAMPLES:
-        return None, len(kept)
-    return statistics.median(kept), len(kept)
-
-
-def find_deals(cards, history):
-    # Pro Karte ein Pool {Angebots-ID: Gesamtpreis}: Historie frueherer Laeufe + aktuelle
-    # Live-Angebote (live ueberschreibt die Historie derselben ID -> kein Doppelzaehlen).
-    pool = {}
-    for key, bucket in history.items():
-        pool[key] = {lid: e["total"] for lid, e in bucket.items()}
-    for c in cards:
-        pool.setdefault(c["key"], {})[c["id"]] = c["total"]
-    deals = []
-    for c in cards:
-        if not (MIN_TOTAL <= c["total"] <= MAX_TOTAL):
-            continue
-        others = [x for lid, x in pool[c["key"]].items() if lid != c["id"]]
-        med, n = reference_price(others)
-        if med is None or med < MIN_MEDIAN:
-            continue
-        if c["total"] <= DEAL_RATIO * med:
-            deals.append(dict(c, median=round(med, 2), n=n, ratio=round(c["total"] / med, 2)))
-    # Gold Stars zuerst, dann beliebte seltene Karten, dann der Rest; innerhalb einer Stufe
-    # japanische Verkaeufer zuerst, danach groesster Abstand zum Median.
-    deals.sort(key=lambda d: (d["tier"], 0 if d["is_jp"] else 1, d["ratio"]))
-    return deals
+def find_deals(cards, history=None, solds_by_key=None, now=None, notes_by_key=None):
+    """Angebots-Historie ist kein Verkaufsmedian. Siehe deal_validation.decide."""
+    if history:
+        log("Hinweis: gespeicherte Angebotspreise werden nicht als Verkaufsmedian verwendet.")
+    return v.find_deals(cards, history=None, solds_by_key=solds_by_key, now=now, notes_by_key=notes_by_key)
 
 
 def update_history(history, cards):
-    today = datetime.now().strftime("%Y-%m-%d")
-    for c in cards:
-        if c["total"] <= MAX_TOTAL * 2:
-            history.setdefault(c["key"], {})[c["id"]] = {"total": c["total"], "last_seen": today}
-    cutoff = datetime.now().timestamp() - HISTORY_MAX_DAYS * 86400
-    for key in list(history.keys()):
-        bucket = history[key]
-        for lid in list(bucket.keys()):
-            try:
-                ts = datetime.strptime(bucket[lid]["last_seen"], "%Y-%m-%d").timestamp()
-            except Exception:
-                ts = 0
-            if ts < cutoff:
-                del bucket[lid]
-        # pro Karte hoechstens 30 Eintraege (neueste zuerst) - haelt psa_state.json klein
-        if len(bucket) > 30:
-            keep = sorted(bucket.items(), key=lambda kv: kv[1]["last_seen"], reverse=True)[:30]
-            history[key] = dict(keep)
-        if not history[key]:
-            del history[key]
+    """Keine neuen Angebotspreise als Referenz. Bestehende psa_state-Historie
+    wird hier nicht fortgeschrieben und nicht geloescht."""
+    return history
 
 
 def load_state():
     if RESET or not os.path.exists(STATE_FILE):
-        return {"seen": {}, "history": {}}
+        return dv.normalize_state({"seen": {}, "history": {}})
     try:
         st = json.load(open(STATE_FILE, encoding="utf-8"))
-        st.setdefault("seen", {})
-        st.setdefault("history", {})
-        return st
+        return dv.normalize_state(st)
     except Exception:
-        return {"seen": {}, "history": {}}
+        return dv.normalize_state({"seen": {}, "history": {}})
 
 
 def save_state(st):
+    if DRY_RUN or os.environ.get("DEAL_FINDER_NEVER_POST") == "1":
+        raise RuntimeError("Dry-Run darf psa_state.json nicht schreiben")
     json.dump(st, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
 
 
-def post_discord(webhook, deals):
+def post_discord(webhook, deals, now=None):
+    if DRY_RUN or os.environ.get("DEAL_FINDER_NEVER_POST") == "1":
+        raise RuntimeError("Dry-Run: kein Discord")
+    if not deals:
+        return []
+    dv.assert_postable(deals)
     embeds = []
     for d in deals:
-        pct = int(round((1 - d["ratio"]) * 100))
+        pct = d["percent_below"]
         flag = "\U0001F1EF\U0001F1F5 " if d.get("is_jp") else ""
-        star = "⭐ GOLD STAR - " if "Gold Star" in d["tags"] else ""
-        tags = ", ".join(t for t in d["tags"] if t != "Gold Star")
-        ship_note = " GESCHAETZT" if d.get("ship_est") else ""
-        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f}{ship_note})\n"
-                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}) - Grade: **{d['grade']}**"
-                + (f" - {tags}" if tags else "") + "\n"
-                f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
-                f"**{pct} % unter den anderen Angeboten** (Median CHF {d['median']:.2f} der {d['n']} anderen aktuellen eBay-Angebote)\n"
-                f"Idee mit Potenzial, KEIN Marktwert: Angebotspreise sind Wunschpreise - bitte in Collectr (Sold/Graded) gegenpruefen.\n"
-                f"[Zum Angebot]({d['url']})")
-        color = 0xF1C40F if "Gold Star" in d["tags"] else (0x2ECC71 if pct >= 40 else 0x95A5A6)
+        star = "⭐ GOLD STAR - " if d.get("variant") == "Gold Star" else ""
+        desc = dv.discord_description(d, now=now)
+        color = 0xF1C40F if d.get("variant") == "Gold Star" else (0x2ECC71 if pct >= 40 else 0x95A5A6)
         embeds.append({
             "title": (flag + star + d["title"])[:240],
             "url": d["url"],
             "description": desc,
             "color": color,
             "image": {"url": d["img"]} if d["img"] else None,
-            "footer": {"text": f"eBay.ch Sofort-Kaufen - gefunden {datetime.now():%d.%m.%Y %H:%M} - Suche: {d.get('query', '')}"},
+            "footer": {"text": dv.discord_footer(d, now=now)},
+            "_deal": d,
         })
-    for e in embeds:
-        if e.get("image") is None:
-            e.pop("image", None)
+    sent = []
     for i in range(0, len(embeds), 6):
-        payload = {"username": "CHAU PSA-Vintage-Ideen", "embeds": embeds[i:i + 6]}
+        batch = embeds[i:i + 6]
+        payload_embeds = []
+        for e in batch:
+            item = {k: v for k, v in e.items() if k != "_deal"}
+            if item.get("image") is None:
+                item.pop("image", None)
+            payload_embeds.append(item)
+        payload = {"username": "CHAU PSA-Vintage-Ideen", "embeds": payload_embeds}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(webhook, data=data, headers={"Content-Type": "application/json", "User-Agent": "chau-psa-deal-finder/1.0"})
-        with urllib.request.urlopen(req) as r:
-            log(f"Discord {r.status} ({len(embeds[i:i + 6])} Embeds)")
+        try:
+            with urllib.request.urlopen(req) as r:
+                status = getattr(r, "status", None)
+                log(f"Discord {status} ({len(batch)} Embeds)")
+                if status not in (200, 204):
+                    raise RuntimeError(f"Discord antwortete mit Status {status}")
+        except Exception as e:
+            e.sent = list(sent)
+            raise
+        sent.extend(e["_deal"] for e in batch)
         time.sleep(1.5)
+    return sent
 
 
 def acquire_lock():
@@ -340,32 +258,53 @@ def main():
             log("Webhook DISCORD_WEBHOOK_PSA fehlt.")
             return
         st = load_state()
+        now = dv.zurich_now()
         items = fetch_all()
         cards = classify(items)
-        deals = find_deals(cards, st["history"])
-        log(f"{len(items)} Angebote geladen, {len(cards)} PSA-klassifiziert, {len(deals)} Deals gesamt")
-        new, per_key = [], {}
-        for d in deals:
-            if d["id"] in st["seen"] or per_key.get(d["key"], 0) >= MAX_PER_KEY_PER_RUN:
-                continue
-            per_key[d["key"]] = per_key.get(d["key"], 0) + 1
-            new.append(d)
-            if len(new) >= MAX_POSTS_PER_RUN:
-                break
-        for d in deals[:25]:
-            log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}T{d['tier']} {d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
+        decisions, confirmed = v.resolve_deals(cards, now=now)
+        log(f"{len(items)} Angebote geladen, {len(cards)} PSA-klassifiziert, {len(confirmed)} bestaetigte Deals")
+        new = dv.select_new(confirmed, set(st.get("posted") or {}), per_key_cap=MAX_PER_KEY_PER_RUN, limit=MAX_POSTS_PER_RUN)
+        for d in decisions:
+            if d.get("status") == "confirmed":
+                log(f"  CONFIRMED {d.get('percent_below')}% CHF {d.get('all_in_chf'):.2f} n={d.get('n')} {d.get('key')} | {d.get('title','')[:70]}")
+            else:
+                log(f"  {d.get('status')} {'; '.join((d.get('reasons') or [])[:4])} | {(d.get('title') or '')[:70]}")
         if DRY_RUN:
-            log(f"Dry-Run: {len(new)} neue Ideen wuerden gepostet.")
+            log(f"Dry-Run: {len(new)} bestaetigte Deals wuerden gepostet. Kein Discord, kein State.")
             return
+        sent = []
+        post_error = None
         if new:
-            post_discord(webhook, new)
-        update_history(st["history"], cards)
-        for d in new:
-            st["seen"][d["id"]] = datetime.now().strftime("%Y-%m-%d")
-        cutoff = datetime.now().timestamp() - 60 * 86400
-        st["seen"] = {k: x for k, x in st["seen"].items() if datetime.strptime(x, "%Y-%m-%d").timestamp() > cutoff}
+            try:
+                sent = post_discord(webhook, new, now=now) or []
+            except Exception as e:
+                post_error = e
+                sent = list(getattr(e, "sent", None) or [])
+        else:
+            log("Keine qualifizierten Deals. Kein Discord-Post.")
+        today = now.strftime("%Y-%m-%d")
+        for c in cards:
+            st["seen"][c["id"]] = today
+        for d in sent:
+            st["posted"][d["id"]] = today
+        cutoff = now.timestamp() - 60 * 86400
+        def _fresh(mapping):
+            kept = {}
+            for k, val in (mapping or {}).items():
+                try:
+                    ts = datetime.strptime(val, "%Y-%m-%d").replace(tzinfo=dv.ZURICH).timestamp()
+                except Exception:
+                    continue
+                if ts > cutoff:
+                    kept[k] = val
+            return kept
+        st["seen"] = _fresh(st.get("seen"))
+        st["posted"] = _fresh(st.get("posted"))
+        update_history(st.get("history") or {}, cards)
         save_state(st)
-        log(f"{len(new)} neue Ideen gepostet.")
+        log(f"Geprueft {len(cards)}, qualifiziert {len(confirmed)}, gepostet {len(sent)}.")
+        if post_error is not None:
+            log(f"Discord-Fehler nach {len(sent)} erfolgreichen Posts, Rest nicht als posted markiert: {post_error}")
     finally:
         try:
             os.remove(LOCK_FILE)

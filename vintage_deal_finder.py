@@ -8,11 +8,13 @@ Expedition), EX-Aera inkl. GOLD STARS (Ruby & Sapphire bis Power Keepers), Diamo
 Platinum, HeartGold SoulSilver, Black & White, XY (bis XY Evolutions, Nov. 2016); englisch +
 japanisch. Gesucht werden Holos, Gold Stars, beliebte und seltene Karten.
 
-Pro Karte (Set + Name + Variante + Zustand) wird ein Referenzpreis gebildet: Median aller
-ANDEREN aktuellen Angebote PLUS Preishistorie frueherer Laeufe (seltene Karten haben selten
-3+ Angebote gleichzeitig, siehe Learnings im Booster-Pack-Finder). Gemeldet werden Angebote
-deutlich UNTER diesem Median (= Verkaeufer hat den Preis nicht dem Markt nachgezogen) in Discord
-(Webhook DISCORD_WEBHOOK_HOLO, Kanal #ebay-vintage-deals) - mit Foto und Link.
+Eine Karte wird nur bestaetigt, wenn Nummer, Set, Ursprungsjahr, Sprache, Finish,
+Edition, Variante und Rohzustand zusammenpassen, der CH-Gesamtpreis belegt ist
+(kein geschaetzter Versand, keine fehlende Einfuhr) und der Preis unter dem Median
+von mindestens drei unterschiedlichen oeffentlichen Verkaeufen liegt (90 Tage,
+sonst 180). Angebotspreise, Preishistorie und Preisguides sind kein Median.
+Unvollstaendige Karten bleiben unverified und werden nicht gepostet
+(Webhook DISCORD_WEBHOOK_HOLO, Kanal #ebay-vintage-deals).
 
 Reihenfolge der Meldungen: Gold Stars zuerst, dann beliebte Pokemon in seltener Variante
 (Holo/ex/Full Art/LV.X/Prime/LEGEND/BREAK/Secret...), dann der Rest; innerhalb einer Stufe
@@ -49,7 +51,7 @@ import urllib.parse
 import urllib.request
 from datetime import datetime
 
-from playwright.sync_api import sync_playwright
+import deal_validation as dv
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 STATE_FILE = os.path.join(HERE, "deal_state.json")
@@ -57,8 +59,23 @@ LOG_FILE = os.path.join(HERE, "deal_finder.log")
 LOCK_FILE = os.path.join(HERE, "deal_finder.lock")
 NAMES_FILE = os.path.join(HERE, "pokemon_names.json")
 
-DRY_RUN = "--dry-run" in sys.argv
+DRY_RUN = "--dry-run" in sys.argv or "--priority-sample" in sys.argv or os.environ.get("DEAL_FINDER_NEVER_POST") == "1"
 RESET = "--reset" in sys.argv
+PRIORITY_RAW_QUERIES = [
+    "pokemon bulbasaur holo 1st edition",
+    "pokemon bulbasaur shadowless holo",
+    "pokemon base set bulbasaur holo",
+    "pokemon jungle bulbasaur holo",
+    "pokemon bisasam holo",
+    "pokemon japanese bulbasaur holo",
+    "pokemon fushigidane holo",
+]
+PRIORITY_PSA_QUERIES = [
+    "pokemon bulbasaur psa base set",
+    "pokemon bulbasaur psa jungle",
+    "pokemon japanese bulbasaur psa",
+    "pokemon bisasam psa",
+]
 
 # ---------------------------------------------------------------- Einstellungen
 MIN_TOTAL = 20.0        # CHF inkl. Versand (Karten ab ca. 2003 sind guenstiger als WOTC-Holos)
@@ -80,6 +97,10 @@ HISTORY_MAX_PER_KEY = 30    # pro Karte hoechstens so viele Historien-Eintraege 
 EXCL_MODERN_QUERY = " -vmax -vstar -gx -paldea -scarlet -violet -sword -shield"
 
 SEARCHES = [
+    # Seltene Bisasam/Bulbasaur zuerst. Eigenes Roh-Budget CHF 400, nicht nur Ancient Mew.
+    "pokemon bulbasaur holo 1st edition", "pokemon bulbasaur shadowless holo",
+    "pokemon base set bulbasaur holo", "pokemon jungle bulbasaur holo",
+    "pokemon bisasam holo", "pokemon japanese bulbasaur holo", "pokemon fushigidane holo",
     # ---- WOTC (Base Set - Neo Destiny), englisch
     "pokemon base set holo", "pokemon base set 1st edition holo", "pokemon shadowless holo",
     "pokemon jungle holo", "pokemon fossil holo", "pokemon team rocket holo",
@@ -153,8 +174,8 @@ SETS = [
     ("EX Hidden Legends", _EX + r"hidden\s*legends", "EX"),
     ("EX FireRed & LeafGreen", _EX + r"fire\s*red\s*(?:&|and)?\s*leaf\s*green|\bfrlg\b", "EX"),
     ("EX Deoxys", r"\bex\s*deoxys\b", "EX"),
-    ("XY Emerald Break", r"emerald\s*break", "XY"),
-    ("EX Emerald", _EX + r"\bemerald\b", "EX"),
+    ("XY Emerald Break", r"emerald\s*break|\bxy\s*6\b|エメラルドブレイク", "XY"),
+    ("EX Emerald", _EX + r"\bemerald\b(?!\s*break)", "EX"),
     ("EX Unseen Forces", _EX + r"unseen\s*forces", "EX"),
     ("EX Delta Species", _EX + r"delta\s*species", "EX"),
     ("EX Legend Maker", _EX + r"legend\s*maker", "EX"),
@@ -237,15 +258,44 @@ SETS = [
     ("e-Card (JP)", r"\be[\-\s]?card\b|pokemon\s*card\s*e\b", "e-Card"),
     ("ADV (JP)", r"\badv\b", "EX"),
     ("PCG (JP)", r"\bpcg\b", "EX"),
-    ("Vending/Promo (JP)", r"vending|\bpromo\b|corocoro", "Promo"),
+    ("Vending (JP)", r"\bvending\b", "Promo"),
+    ("Vending/Promo (JP)", r"\bpromo\b|corocoro", "Promo"),
 ]
 SETS_C = [(n, re.compile(p, re.I), era) for n, p, era in SETS]
+SET_STRIP = {
+    "XY Emerald Break": re.compile(r"emerald\s*break|\bxy\s*6\b|エメラルドブレイク", re.I),
+    "EX Emerald": re.compile(r"(?:\bex[\s\-]+)?\bemerald\b", re.I),
+    "XY BREAKpoint": re.compile(r"break\s*points?", re.I),
+    "XY BREAKthrough": re.compile(r"break\s*throughs?", re.I),
+    "EX Dragon Frontiers": re.compile(r"(?:\bex[\s\-]+)?dragon\s*frontiers", re.I),
+    "EX Dragon": re.compile(r"\bex\s*dragon\b", re.I),
+    "EX Team Rocket Returns": re.compile(r"(?:\bex[\s\-]+)?team\s*rocket\s*returns", re.I),
+}
+
+
+def strip_set_tokens(tn, set_name, match):
+    """Alle Aliase des erkannten Sets entfernen, nicht nur den kuerzesten Treffer.
+
+    Sonst bleibt bei "XY6 Emerald Break" das Wort Break stehen, wenn der erste
+    Treffer nur "xy6" war, und die Karte wird faelschlich eine BREAK-Karte.
+    """
+    rx = SET_STRIP.get(set_name or "")
+    if rx:
+        return rx.sub(" ", tn or "")
+    if match and tn:
+        return tn[:match.start()] + " " + tn[match.end():]
+    return tn or ""
 
 # Namen, die nicht (oder anders) in der Gen-1-6-Pokedex-Liste stehen: Trainer-/Rocket-Karten
 # der WOTC-Aera, die als eigene "Karte" gelten sollen.
 EXTRA_NAMES = [
     "Here Comes Team Rocket", "Rocket's Sneak Attack", "Rainbow Energy", "Lucky Stadium",
+    "Bisasam", "Fushigidane",
 ]
+NAME_ALIASES = {
+    "bisasam": "bulbasaur",
+    "fushigidane": "bulbasaur",
+}
 POPULAR = {
     "charizard", "pikachu", "mew", "mewtwo", "rayquaza", "lugia", "ho-oh", "umbreon", "espeon", "gengar",
     "blastoise", "venusaur", "dragonite", "gyarados", "eevee", "vaporeon", "jolteon", "flareon", "glaceon",
@@ -385,14 +435,19 @@ def detect_set(t):
 def detect_name(tn):
     """Findet den Pokemon-/Trainer-Namen (normalisierter Titel!). Gibt (Anzeigename, Basisname)
     zurueck. Praefixe wie Dark/Light/Shining/Rocket's/Blaine's gehoeren zum Karten-Namen."""
-    m = NAME_RE.search(tn)
+    # norm() entfernt Dakuten, aus フシギダネ wird フシキタネ.
+    if tn and ("フシギダネ" in tn or "フシキタネ" in tn):
+        return "Bulbasaur", "bulbasaur"
+    m = NAME_RE.search(tn or "")
     if not m:
         return None, None
     base = re.sub(r"[\s\-.']+", " ", m.group(1)).strip()
     base_key = base.replace(" ", "-") if base in ("ho oh",) else base
+    base_key = NAME_ALIASES.get(base_key, base_key)
     pm = PREFIX_RE.search(tn[:m.start()].rstrip())
     prefix = pm.group(1).strip() if pm else ""
-    disp = string.capwords((prefix + " " + base).strip())
+    shown = NAME_ALIASES.get(base, base)
+    disp = string.capwords((prefix + " " + shown).strip())
     return disp, base_key
 
 
@@ -415,10 +470,8 @@ def detect_variant(tt, base, era=None):
         tags.append("Gold Star")
     key_variant = "Gold Star" if gold else None
     for tag, rx in VARIANT_TAGS:
-        # In der EX-Aera steckt "EX" auch im Set-Namen ("EX Dragon Frontiers") - ob eine Karte
-        # selbst eine ex-Karte ist, laesst sich dort aus dem Titel nicht verlaesslich ableiten.
-        if tag == "EX" and era == "EX":
-            continue
+        # "EX" im Set-Namen wird vorher entfernt (strip_set_tokens). Was danach noch
+        # "EX" sagt, ist der Kartentyp und darf nicht mit einer normalen Holo zusammenfallen.
         if rx.search(tt):
             tags.append(tag)
             if key_variant is None:
@@ -508,7 +561,7 @@ def parse_shipping(s):
 
 
 def log(msg):
-    line = f"[{datetime.now():%Y-%m-%d %H:%M:%S}] {msg}"
+    line = f"[{dv.zurich_stamp()}] {msg}"
     print(line)
     with open(LOG_FILE, "a", encoding="utf-8") as fh:
         fh.write(line + "\n")
@@ -530,52 +583,148 @@ EXTRACT_JS = """() => [...document.querySelectorAll('li.s-item, li.s-card')].map
   const img = li.querySelector('img');
   const sub = [...li.querySelectorAll('.SECONDARY_INFO, .s-item__subtitle, .s-card__subtitle, [class*="condition"], [class*="Condition"]')].map(x => x.textContent).join(' ');
   const full = (li.innerText || '').replace(/\\s+/g, ' ').trim();
+  const ended = (li.querySelector('.s-item__ended-date, .s-item__endedDate, .s-item__caption--signal, .s-item__title--tag, [class*="ended"], [class*="caption"]') || {}).textContent || '';
   const locEl = (li.querySelector('.s-item__location, .s-item__itemLocation, [class*="location"]') || {}).textContent || '';
   const fromMatch = (li.innerText || '').match(/\\baus ([^\\n]+)/);
   const country = (locEl.replace(/^aus\\s+/i, '').trim()) || (fromMatch ? fromMatch[1].trim() : '');
   return {id, t: t.replace('Wird in neuem Fenster oder Tab geöffnet', '').trim(), p: p.trim(), s: s.trim(),
-          img: img ? (img.src || img.getAttribute('data-src') || '') : '', sub: sub.trim(), full, country};
+          img: img ? (img.src || img.getAttribute('data-src') || '') : '', sub: sub.trim(), full, country,
+          ended: (ended || '').replace(/\\s+/g, ' ').trim()};
 }).filter(x => x.id && x.id !== '123456')"""
 
 
-def fetch_all():
-    items = {}
-    # eBay blockt echten Headless-Chrome (403/Stub-Seite, getestet 2026-09-26: urllib, curl,
-    # Playwright headless=True, Chrome "--headless=new" und sogar camoufox headless). Nur ein
-    # "echter" (headed) Chromium-Prozess funktioniert. Lokal (Windows) wird das Fenster
-    # ausserhalb des Desktops platziert, in der Cloud (Linux) laeuft es unter xvfb-run.
+def _launch_browser(playwright):
+    # eBay blockt echten Headless-Chrome. Nur ein headed Chromium, lokal ausserhalb
+    # des Desktops, in der Cloud unter xvfb. Keine Cookies, kein privater API-Zugriff.
     launch_args = ["--window-size=1280,900"]
     if os.name == "nt":
         launch_args.insert(0, "--window-position=-2400,-2400")
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=False, args=launch_args)
-        ctx = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900})
-        page = ctx.new_page()
-        for q in SEARCHES:
-            hi = (MAX_TOTAL_GOLD if "gold star" in q else MAX_TOTAL) + 60
+    browser = playwright.chromium.launch(headless=False, args=launch_args)
+    page = browser.new_context(locale="de-CH", viewport={"width": 1280, "height": 900}).new_page()
+    return browser, page
+
+
+def search_high(query, psa=False):
+    q = (query or "").lower()
+    if psa:
+        return int(dv.MAX_PSA) + 60
+    if any(s in q for s in ("bulbasaur", "bisasam", "fushigidane", "フシギダネ")):
+        return int(dv.MAX_RAW_BULBASAUR) + 60
+    if "gold star" in q:
+        return int(MAX_TOTAL_GOLD) + 60
+    return int(MAX_TOTAL) + 60
+
+
+def scrape_queries(page, queries, notes, sold=False, psa=False, attempts=2):
+    """Oeffentliche eBay.ch-Suche. `sold=True` ist die normale Verkaufssuche
+    (LH_Sold), kein undokumentierter Endpunkt."""
+    items = {}
+    for q in queries:
+        if sold:
             url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
-                   f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={int(MIN_TOTAL)}&_udhi={int(hi)}&_ipg=240")
-            rows = []
-            for attempt in range(3):
+                   "&_sacat=183454&LH_Sold=1&LH_Complete=1&_sop=13&_ipg=120")
+        else:
+            hi = search_high(q, psa=psa)
+            lo = int(MIN_TOTAL)
+            url = ("https://www.ebay.ch/sch/i.html?_nkw=" + urllib.parse.quote(q) +
+                   f"&_sacat=183454&LH_BIN=1&_sop=10&_udlo={lo}&_udhi={hi}&_ipg=240")
+        rows = []
+        page_title = ""
+        error = None
+        for attempt in range(attempts):
+            try:
+                page.goto(url, timeout=45000, wait_until="domcontentloaded")
+                page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
                 try:
-                    page.goto(url, timeout=60000, wait_until="domcontentloaded")
-                    page.wait_for_timeout(PAGE_WAIT_MS * (attempt + 1))
-                    rows = page.evaluate(EXTRACT_JS)
-                except Exception as e:
-                    log(f"Fehler bei '{q}' (Versuch {attempt + 1}): {e}")
-                if rows:
-                    break
-                time.sleep(3)
-            new = 0
-            for r in rows:
-                if r["id"] not in items:
-                    r["query"] = q
-                    items[r["id"]] = r
-                    new += 1
-            log(f"'{q}': {len(rows)} Treffer, {new} neu")
-            time.sleep(1.0)
-        browser.close()
+                    page_title = page.title() or ""
+                except Exception:
+                    page_title = ""
+                rows = page.evaluate(EXTRACT_JS)
+            except Exception as e:
+                error = str(e)[:300]
+                log(f"Fehler bei '{q}' (Versuch {attempt + 1}): {error}")
+            if rows:
+                error = None
+                break
+            time.sleep(2)
+        if not rows and page_title and re.search(r"anmelden|sign in|captcha|robot|access denied|fehler", page_title, re.I):
+            error = ("Keine oeffentlichen Treffer. Seitentitel deutet auf Login, Sperre oder leere Seite. "
+                     "Es werden keine Cookies und keine undokumentierten APIs verwendet. Titel: " + page_title[:160])
+        elif not rows and error is None:
+            error = "Keine oeffentlichen Trefferzeilen (leere Suche oder nicht lesbare Seite)."
+        new = 0
+        for r in rows or []:
+            if r["id"] not in items:
+                r["query"] = q
+                items[r["id"]] = r
+                new += 1
+        notes.append({
+            "query": q,
+            "sold": sold,
+            "url": url,
+            "page_title": (page_title or "")[:180],
+            "row_count": len(rows or []),
+            "new": new,
+            "sample_titles": [(r.get("t") or "")[:100] for r in (rows or [])[:5]],
+            "sample_ended": [(r.get("ended") or "")[:80] for r in (rows or [])[:5]],
+            "error": error,
+        })
+        log(f"'{q}': {len(rows or [])} Treffer, {new} neu" + (" [verkauft]" if sold else ""))
+        time.sleep(1.0)
     return items
+
+
+def fetch_all(queries=None):
+    from playwright.sync_api import sync_playwright
+    queries = list(queries or SEARCHES)
+    notes = []
+    with sync_playwright() as p:
+        browser, page = _launch_browser(p)
+        try:
+            items = scrape_queries(page, queries, notes, sold=False, psa=False)
+        finally:
+            browser.close()
+    return items
+
+
+def sold_query_for(card):
+    rarity = card.get("rarity") if card.get("rarity") not in (None, "unstated") else ""
+    lang = "japanese" if card.get("lang") == "JP" else "english"
+    parts = ["pokemon", card.get("display") or card.get("name"), card.get("number_display") or card.get("number"),
+             card.get("set"), rarity, card.get("condition"), lang]
+    return " ".join(str(p) for p in parts if p)
+
+
+def fetch_sold_map(cards):
+    """Eine oeffentliche Verkaufssuche je Identitaet, gedeckelt. Ergebnis sind
+    geparste Zeilen, noch kein Median."""
+    from playwright.sync_api import sync_playwright
+    solds = {}
+    notes = {}
+    if not cards:
+        return solds, notes
+    with sync_playwright() as p:
+        browser, page = _launch_browser(p)
+        try:
+            for card in cards:
+                q = sold_query_for(card)
+                bucket_notes = []
+                rows = scrape_queries(page, [q], bucket_notes, sold=True, attempts=2)
+                parsed = []
+                for raw in rows.values():
+                    parsed_card = dv.parse_listing(raw, mode=card.get("mode") or "raw")
+                    if parsed_card:
+                        parsed.append(parsed_card)
+                solds[card["key"]] = parsed
+                note = bucket_notes[0] if bucket_notes else {}
+                notes[card["key"]] = {
+                    "searched": True,
+                    "detail": note.get("error") or f"sold-fetch-rows:{note.get('row_count', 0)}",
+                    "fetch": note,
+                }
+        finally:
+            browser.close()
+    return solds, notes
 
 
 DROP_STATS = {}      # Diagnose: warum Angebote verworfen wurden (Grund -> Anzahl)
@@ -588,78 +737,32 @@ def _drop(reason, title):
         GOLD_DROPPED.append(f"[{reason}] {title[:90]}")
 
 
-def classify(items):
-    out = []
+def classify(items, mode="raw"):
+    kept, _dropped = classify_verbose(items, mode=mode)
+    return kept
+
+
+def classify_verbose(items, mode="raw"):
+    kept, dropped = [], []
     for r in items.values():
-        t = r["t"]
-        full_text = " ".join([t, r.get("sub", ""), r.get("full", "")])
-        if EXCLUDE.search(t):
-            _drop("ausschluss-wort", t)
+        card = dv.parse_listing(r, mode=mode)
+        if card is None:
             continue
-        if NONHOLO.search(t):
-            _drop("non-holo/reverse", t)
+        if card.get("drop"):
+            _drop(card["drop"], card.get("title") or "")
+            if len(dropped) < 20:
+                dropped.append(card)
             continue
-        if MODERN.search(t):
-            _drop("modern(ab 2017)", t)
-            continue
-        if PSA_GRADED.search(full_text) or (PSA_WORD.search(full_text) and not PSA_NEG.search(full_text)):
-            _drop("psa(eigener bot)", t)
-            continue
-        price = parse_chf(r["p"])
-        if price is None:
-            _drop("kein-preis", t)
-            continue
-        is_jp_seller = is_japan_origin(r.get("country", ""))
-        ship = parse_shipping(r["s"])
-        # Fehlt der Versandpreis in der Trefferliste (v.a. Auslandsverkaeufer mit "eBay International
-        # Shipping"), wuerde der Gesamtpreis zu niedrig ausfallen (Fehlalarm 2026-10-06) -> Pauschale.
-        ship_est = not re.search(r"CHF|kostenlos|gratis|free", r["s"] or "", re.I)
-        if ship_est:
-            ship = 8.0 if (r.get("country") or "").strip().lower() == "schweiz" else 25.0
-        total = round(price + ship, 2)
-        sset, era, sm = detect_set(norm(t))
-        if not sset:
-            _drop("kein-set", t)
-            continue
-        # Set-Namen aus dem Titel entfernen, bevor Name/Variante gesucht werden (sonst steckt
-        # z.B. "Dragon" in "EX Dragon Frontiers" oder "Black"/"White" im Set-Namen in den Tags).
-        tn = norm(t)
-        tn_wo_set = (tn[:sm.start()] + " " + tn[sm.end():]) if sm else tn
-        disp_name, base = detect_name(tn_wo_set)
-        if not disp_name:
-            disp_name, base = detect_name(tn)
-        if not disp_name:
-            _drop("kein-name", t)
-            continue
-        tt = COND_STRIP.sub(" ", tn_wo_set)
-        variant, tags = detect_variant(tt, base, era)
-        # Zustand steht meistens NICHT im Titel, sondern im "Artikelzustand"-Feld der Trefferkarte
-        grade = detect_grade(" ".join([t, r.get("sub", ""), r.get("full", "")]))
-        lang = "JP" if is_japanese(t) else "EN"
-        key = f"{lang}|{sset}|{disp_name}|{variant}|{grade_band(grade)}"
-        img = r["img"] or ""
-        img = re.sub(r"/s-l\d+\.(webp|jpg)", "/s-l1600.jpg", img)
-        gold = "Gold Star" in tags
-        popular = base in POPULAR
-        rare = variant != "Std" or "Holo" in tags
-        if gold:
-            tier = 0
-        elif popular and rare:
-            tier = 1
-        elif popular or rare:
-            tier = 2
-        else:
-            tier = 3
-        out.append(dict(id=r["id"], title=t, price=price, ship=ship, ship_est=ship_est, total=total, name=disp_name,
-                        set=sset, era=era, grade=grade, lang=lang, variant=variant, tags=tags, key=key, tier=tier,
-                        img=img, url=f"https://www.ebay.ch/itm/{r['id']}", sub=r.get("sub", ""),
-                        query=r.get("query", ""), country=r.get("country", "") or "unbekannt", is_jp=is_jp_seller))
-    return out
+        kept.append(card)
+    return kept, dropped
 
 
 def reference_price(vals, min_samples=None):
-    """Robuster Referenzpreis: Median, nach Entfernen von Ausreissern (>2.5x oder <0.4x des
-    Roh-Medians) nochmals Median. None, wenn danach zu wenig Angebote uebrig sind."""
+    """Nicht fuer Deals verwenden. Angebotspreise sind kein Verkaufsmedian.
+
+    Bleibt nur, damit alte Aufrufe nicht still auf einen Wunschpreis-Median zurueckfallen:
+    find_deals() ruft das hier nicht mehr auf.
+    """
     ms = min_samples or MIN_SAMPLES
     if len(vals) < ms:
         return None, 0
@@ -670,106 +773,206 @@ def reference_price(vals, min_samples=None):
     return statistics.median(kept), len(kept)
 
 
-def find_deals(cards, history):
-    # Pro Karte ein Pool {Angebots-ID: Gesamtpreis}: Historie frueherer Laeufe + aktuelle
-    # Live-Angebote (live ueberschreibt Historie derselben ID -> kein Doppelzaehlen).
-    pool = {}
-    for key, bucket in history.items():
-        pool[key] = {lid: v[0] for lid, v in bucket.items()}
-    for c in cards:
-        pool.setdefault(c["key"], {})[c["id"]] = c["total"]
-    deals = []
-    for c in cards:
-        if not (MIN_TOTAL <= c["total"] <= (MAX_TOTAL_GOLD if c["tier"] == 0 else MAX_TOTAL)):
-            continue
-        # Referenz OHNE das Angebot selbst (sonst zieht der eigene Preis den Median nach unten)
-        others = [t for lid, t in pool[c["key"]].items() if lid != c["id"]]
-        med, n = reference_price(others, MIN_SAMPLES_GOLD if c["tier"] == 0 else MIN_SAMPLES)
-        if med is None or med < MIN_MEDIAN:
-            continue
-        if c["total"] <= (DEAL_RATIO if n >= 8 else DEAL_RATIO_THIN) * med:
-            deals.append(dict(c, median=round(med, 2), n=n, ratio=round(c["total"] / med, 2)))
-    # Gold Stars zuerst, dann beliebte seltene Karten, dann der Rest; innerhalb einer Stufe
-    # japanische Verkaeufer zuerst, danach groesster Abstand zum Median.
-    deals.sort(key=lambda d: (d["tier"], 0 if d["is_jp"] else 1, d["ratio"]))
-    return deals
+def find_deals(cards, history=None, solds_by_key=None, now=None, notes_by_key=None):
+    """`history` sind fruehere Angebotspreise. Sie werden nicht gelesen.
+
+    Der fruehere Median aus Wunschpreisen (Latios-EX Emerald Break, 08.11.2026,
+    Median CHF 148.01 aus drei Angeboten) darf nicht wieder entstehen.
+    """
+    if history:
+        log("Hinweis: gespeicherte Angebotspreise werden nicht als Verkaufsmedian verwendet.")
+    return dv.evaluate_cards(cards, solds_by_key or {}, now=now, notes_by_key=notes_by_key)
 
 
 def update_history(history, cards):
-    """Traegt die aktuell klassifizierten Angebote in die Preishistorie ein (pro Karte,
-    dedupliziert nach Angebots-ID, kompaktes Format [Preis, JJMMTT]), entfernt Eintraege, die
-    seit HISTORY_MAX_DAYS nicht mehr gesehen wurden (vermutlich verkauft/entfernt) und kappt
-    jede Karte auf HISTORY_MAX_PER_KEY (neueste zuerst)."""
-    today = datetime.now().strftime("%y%m%d")
-    for c in cards:
-        if not (MIN_TOTAL <= c["total"] <= (MAX_TOTAL_GOLD * 2 if c["tier"] == 0 else MAX_TOTAL * 2)):
-            continue
-        history.setdefault(c["key"], {})[c["id"]] = [c["total"], today]
-    cutoff = (datetime.now().timestamp() - HISTORY_MAX_DAYS * 86400)
-    for key in list(history.keys()):
-        bucket = history[key]
-        for lid in list(bucket.keys()):
-            try:
-                ts = datetime.strptime(bucket[lid][1], "%y%m%d").timestamp()
-            except Exception:
-                ts = 0
-            if ts < cutoff:
-                del bucket[lid]
-        if len(bucket) > HISTORY_MAX_PER_KEY:
-            keep = sorted(bucket.items(), key=lambda kv: kv[1][1], reverse=True)[:HISTORY_MAX_PER_KEY]
-            history[key] = dict(keep)
-        if not history[key]:
-            del history[key]
+    """Angebotspreise werden nicht mehr als Preisreferenz fortgeschrieben.
+
+    Die bestehende Datei bleibt beim Laden erhalten und wird hier weder
+    ergaenzt noch geloescht. Bestaetigte Mediane kommen nur aus den
+    Verkaufszeilen des jeweiligen Laufs.
+    """
+    return history
 
 
 def load_state():
     if RESET or not os.path.exists(STATE_FILE):
-        return {"seen": {}, "history": {}}
+        return dv.normalize_state({"seen": {}, "history": {}})
     try:
         st = json.load(open(STATE_FILE, encoding="utf-8"))
-        st.setdefault("seen", {})
-        st.setdefault("history", {})
-        return st
+        return dv.normalize_state(st)
     except Exception:
-        return {"seen": {}, "history": {}}
+        return dv.normalize_state({"seen": {}, "history": {}})
+
+
+def _state_write_blocked():
+    return DRY_RUN or "--priority-sample" in sys.argv or os.environ.get("DEAL_FINDER_NEVER_POST") == "1"
 
 
 def save_state(st):
+    if _state_write_blocked():
+        raise RuntimeError("Dry-Run darf deal_state.json nicht schreiben")
     json.dump(st, open(STATE_FILE, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
 
 
-def post_discord(webhook, deals):
+def post_discord(webhook, deals, now=None):
+    """Sendet nur bestaetigte Deals. Rueckgabe: erfolgreich angenommene Deals.
+
+    Ein HTTP-Fehler markiert die noch nicht gesendete Restliste nicht als posted.
+    """
+    if _state_write_blocked():
+        raise RuntimeError("Dry-Run: kein Discord")
+    if not deals:
+        return []
+    dv.assert_postable(deals)
     embeds = []
     for d in deals:
-        pct = int(round((1 - d["ratio"]) * 100))
+        pct = d["percent_below"]
         flag = "\U0001F1EF\U0001F1F5 " if d.get("is_jp") else ""
-        star = "⭐ " if "Gold Star" in d["tags"] else ""
-        tags = ", ".join(d["tags"]) if d["tags"] else "-"
-        desc = (f"**CHF {d['total']:.2f}** inkl. Versand (Preis {d['price']:.2f} + Versand {d['ship']:.2f}{' GESCHAETZT' if d.get('ship_est') else ''})\n"
-                f"Karte: **{d['name']}** - {d['set']} ({d['lang']}, Aera {d['era']}) - Zustand/Grade: **{d['grade']}**\n"
-                f"Merkmale: {tags}\n"
-                f"Herkunft: **{d.get('country', 'unbekannt')}**\n"
-                f"**{pct} % unter Median** (Median CHF {d['median']:.2f} aus {d['n']} anderen Angeboten inkl. Preishistorie)\n"
-                f"[Zum Angebot]({d['url']})")
-        color = 0xFFD700 if "Gold Star" in d["tags"] else (0x2ECC71 if pct >= 40 else 0xF1C40F)
+        star = "⭐ " if d.get("variant") == "Gold Star" else ""
+        desc = dv.discord_description(d, now=now)
+        color = 0xFFD700 if d.get("variant") == "Gold Star" else (0x2ECC71 if pct >= 40 else 0xF1C40F)
         embeds.append({
             "title": (flag + star + d["title"])[:240],
             "url": d["url"],
             "description": desc,
             "color": color,
             "image": {"url": d["img"]} if d["img"] else None,
-            "footer": {"text": f"eBay.ch Sofort-Kaufen - gefunden {datetime.now():%d.%m.%Y %H:%M} - Suche: {d.get('query', '')}"[:2000]},
+            "footer": {"text": dv.discord_footer(d, now=now)},
+            "_deal": d,
         })
-    for e in embeds:
-        if e["image"] is None:
-            del e["image"]
+    sent = []
     for i in range(0, len(embeds), 6):
-        payload = {"username": "CHAU Vintage-Deal-Finder", "embeds": embeds[i:i + 6]}
+        batch = embeds[i:i + 6]
+        payload_embeds = []
+        for e in batch:
+            item = {k: v for k, v in e.items() if k != "_deal"}
+            if item.get("image") is None:
+                item.pop("image", None)
+            payload_embeds.append(item)
+        payload = {"username": "CHAU Vintage-Deal-Finder", "embeds": payload_embeds}
         data = json.dumps(payload).encode("utf-8")
         req = urllib.request.Request(webhook, data=data, headers={"Content-Type": "application/json", "User-Agent": "chau-deal-finder/2.0"})
-        with urllib.request.urlopen(req) as r:
-            log(f"Discord {r.status} ({len(embeds[i:i + 6])} Embeds)")
+        try:
+            with urllib.request.urlopen(req) as r:
+                status = getattr(r, "status", None)
+                log(f"Discord {status} ({len(batch)} Embeds)")
+                if status not in (200, 204):
+                    raise RuntimeError(f"Discord antwortete mit Status {status}")
+        except Exception as e:
+            e.sent = list(sent)
+            raise
+        sent.extend(e["_deal"] for e in batch)
         time.sleep(1.5)
+    return sent
+
+
+def cards_needing_solds(cards):
+    out, seen = [], set()
+    for c in sorted(cards, key=lambda c: (c.get("tier", 9), c.get("key") or "")):
+        if not c.get("needs_sold_lookup") or c.get("key") in seen:
+            continue
+        seen.add(c["key"])
+        out.append(c)
+        if len(out) >= dv.SOLD_LOOKUP_CAP:
+            break
+    return out
+
+
+def resolve_deals(cards, solds_by_key=None, notes_by_key=None, now=None):
+    if solds_by_key is None:
+        lookup = cards_needing_solds(cards)
+        capped = {c["key"] for c in lookup}
+        solds_by_key, fetched = fetch_sold_map(lookup) if lookup else ({}, {})
+        notes_by_key = dict(fetched)
+        for c in cards:
+            if c.get("needs_sold_lookup") and c.get("key") not in capped:
+                notes_by_key[c["key"]] = {"searched": False, "detail": "sold-lookup-cap"}
+    return find_deals(cards, history=None, solds_by_key=solds_by_key or {}, now=now, notes_by_key=notes_by_key)
+
+
+def run_priority_sample(now=None):
+    """Ein Lauf: seltene Bulbasaur/Bisasam-Rohkarten und PSA-Vintage bis 2016.
+
+    Kein Discord, kein State. PSA-Slabs werden hier nicht optisch gelesen.
+    """
+    notes, dropped, cards = [], [], []
+    solds, sold_notes = {}, {}
+    queries = {"raw": list(PRIORITY_RAW_QUERIES), "psa": list(PRIORITY_PSA_QUERIES)}
+    try:
+        from playwright.sync_api import sync_playwright
+    except Exception as e:
+        notes.append({
+            "error": f"playwright nicht verfuegbar: {type(e).__name__}: {e}"[:400],
+            "limit": "Oeffentliche Suche braucht headed Chromium unter xvfb (derselbe Weg wie deal-finder.yml). "
+                     "Kein Cookie-Zugriff und keine undokumentierte API.",
+        })
+        decisions, _ = find_deals(cards, solds_by_key=solds, notes_by_key=sold_notes, now=now)
+        return decisions, notes, queries, dropped
+    try:
+        with sync_playwright() as p:
+            browser, page = _launch_browser(p)
+            try:
+                raw_items = scrape_queries(page, PRIORITY_RAW_QUERIES, notes, sold=False, psa=False)
+                psa_items = scrape_queries(page, PRIORITY_PSA_QUERIES, notes, sold=False, psa=True)
+                raw_cards, raw_drop = classify_verbose(raw_items, mode="raw")
+                psa_cards, psa_drop = [], []
+                for raw in psa_items.values():
+                    card = dv.parse_listing(raw, mode="psa", now=now)
+                    if card is None:
+                        continue
+                    if card.get("drop"):
+                        if len(psa_drop) < 20:
+                            psa_drop.append(card)
+                        continue
+                    psa_cards.append(card)
+                dropped = raw_drop + psa_drop
+                cards = raw_cards + psa_cards
+                lookup = cards_needing_solds(cards)
+                capped = {c["key"] for c in lookup}
+                for card in lookup:
+                    rows = scrape_queries(page, [sold_query_for(card)], notes, sold=True, attempts=2)
+                    parsed = []
+                    for raw in rows.values():
+                        got = dv.parse_listing(raw, mode=card.get("mode") or "raw", now=now)
+                        if got:
+                            parsed.append(got)
+                    solds[card["key"]] = parsed
+                    sold_notes[card["key"]] = {"searched": True, "detail": "sold-fetch"}
+                for c in cards:
+                    if c.get("needs_sold_lookup") and c.get("key") not in capped:
+                        sold_notes[c["key"]] = {"searched": False, "detail": "sold-lookup-cap"}
+            finally:
+                browser.close()
+    except Exception as e:
+        notes.append({
+            "error": f"{type(e).__name__}: {e}"[:400],
+            "limit": "Oeffentliche eBay-Suche in diesem Lauf nicht zu Ende gefuehrt. "
+                     "Sanctioned naechster Schritt nach Freigabe: workflow_dispatch von deal-finder.yml "
+                     "mit dry_run=true (xvfb, headed Chromium, ohne Discord-Secret). "
+                     "Kein Cookie, kein Bypass, keine zweite Wiederholung in diesem Lauf.",
+        })
+    decisions, _ = find_deals(cards, solds_by_key=solds, notes_by_key=sold_notes, now=now)
+    return decisions, notes, queries, dropped
+
+
+def write_run_artifact(path, decisions, notes, queries, dropped):
+    payload = {
+        "generated_at": dv.zurich_stamp(),
+        "timezone": "Europe/Zurich",
+        "dry_run": True,
+        "discord_sent": False,
+        "state_written": False,
+        "queries": queries,
+        "fetch_notes": notes,
+        "confirmed_count": sum(1 for d in decisions if d.get("status") == "confirmed"),
+        "candidates": [dv.artifact_record(d) for d in decisions],
+        "dropped_preview": [dv.artifact_record(d) for d in dropped],
+    }
+    os.makedirs(os.path.dirname(path) or ".", exist_ok=True)
+    with open(path, "w", encoding="utf-8") as fh:
+        json.dump(payload, fh, ensure_ascii=False, indent=2)
+    log(f"Artefakt {path}: {len(decisions)} Kandidaten, {payload['confirmed_count']} bestaetigt, Discord nicht gesendet")
+    return payload
 
 
 def acquire_lock():
@@ -780,15 +983,31 @@ def acquire_lock():
     return True
 
 
+def _log_decisions(decisions):
+    for d in decisions:
+        if d.get("status") == "confirmed":
+            log(f"  CONFIRMED {d.get('percent_below')}% CHF {d.get('all_in_chf'):.2f} "
+                f"Median {d.get('median')} n={d.get('n')} Fenster {d.get('window_days')}d {d.get('key')} | {d.get('title','')[:70]}")
+        else:
+            log(f"  {d.get('status')} {'; '.join((d.get('reasons') or [])[:5])} | {(d.get('title') or '')[:70]}")
+
+
 def main():
     if not acquire_lock():
         log("Ein anderer Lauf ist bereits aktiv, abgebrochen.")
         return
     try:
+        now = dv.zurich_now()
+        if "--priority-sample" in sys.argv:
+            log("Prioritaet: seltene Bisasam/Bulbasaur, plus PSA-Vintage bis 2016. Ein Lauf, kein Discord, kein State.")
+            decisions, notes, queries, dropped = run_priority_sample(now=now)
+            path = os.environ.get("DEAL_FINDER_ARTIFACT") or os.path.join(HERE, "artifacts", "deal-finder-priority-dry-run.json")
+            write_run_artifact(path, decisions, notes, queries, dropped)
+            _log_decisions(decisions)
+            log(f"Dry-Run: {sum(1 for d in decisions if d.get('status')=='confirmed')} bestaetigte Deals. Kein Discord, kein State.")
+            return
         webhook = os.environ.get("DISCORD_WEBHOOK_HOLO") or ""
         if not webhook and not DRY_RUN and os.name == "nt":
-            # Lokal (Windows) steht der Webhook als persistente User-Umgebungsvariable; in der
-            # Cloud (Linux) kommt er ausschliesslich ueber os.environ (GitHub Actions Secret).
             import subprocess
             webhook = subprocess.run(["powershell", "-NoProfile", "-Command", "[Environment]::GetEnvironmentVariable('DISCORD_WEBHOOK_HOLO','User')"],
                                      capture_output=True, text=True).stdout.strip()
@@ -797,52 +1016,53 @@ def main():
             return
         st = load_state()
         items = fetch_all()
-        cards = classify(items)
-        # find_deals() nutzt die BISHERIGE Historie (Stand vor diesem Lauf) - erst danach wird der
-        # aktuelle Lauf in die Historie eingetragen.
-        deals = find_deals(cards, st["history"])
-        log(f"{len(items)} Angebote geladen, {len(cards)} klassifiziert, {len(deals)} Deals gesamt")
+        cards, _dropped = classify_verbose(items, mode="raw")
+        decisions, confirmed = resolve_deals(cards, now=now)
+        log(f"{len(items)} Angebote geladen, {len(cards)} klassifiziert, {len(confirmed)} bestaetigte Deals")
         by_era = {}
         for c in cards:
-            by_era[c["era"]] = by_era.get(c["era"], 0) + 1
+            by_era[c.get("era") or "?"] = by_era.get(c.get("era") or "?", 0) + 1
         log("Klassifiziert pro Aera: " + ", ".join(f"{k}={v}" for k, v in sorted(by_era.items())))
-        by_tier = {}
-        for c in cards:
-            by_tier[c["tier"]] = by_tier.get(c["tier"], 0) + 1
-        log("Klassifiziert pro Stufe (0=Gold Star, 1=beliebt+selten, 2=eins davon, 3=Rest): "
-            + ", ".join(f"{k}={v}" for k, v in sorted(by_tier.items())))
         log("Verworfen: " + ", ".join(f"{k}={v}" for k, v in sorted(DROP_STATS.items())))
-        for gd in GOLD_DROPPED[:25]:
-            log("  verworfen (Gold-Star-verdaechtig) " + gd)
-        gold_cards = [c for c in cards if c["tier"] == 0]
-        log(f"Gold-Star-Karten klassifiziert: {len(gold_cards)}")
-        for c in sorted(gold_cards, key=lambda x: x["total"])[:12]:
-            log(f"  GOLD {c['set']} | {c['name']} | CHF {c['total']:.2f} | {c['title'][:70]}")
-        # Pro Karte hoechstens 2 Meldungen pro Lauf, sonst fuellt eine einzelne Karte (z.B. mehrere
-        # Rayquaza-EX-Promos) die ganze Liste - so verteilen sich die Meldungen ueber mehr Karten.
-        new, per_key = [], {}
-        for d in deals:
-            if d["id"] in st["seen"] or per_key.get(d["key"], 0) >= 2:
-                continue
-            per_key[d["key"]] = per_key.get(d["key"], 0) + 1
-            new.append(d)
-            if len(new) >= MAX_POSTS_PER_RUN:
-                break
-        for d in deals[:30]:
-            log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}T{d['tier']} {d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
+        new = dv.select_new(confirmed, set((st.get("posted") or {})), per_key_cap=2, limit=MAX_POSTS_PER_RUN)
+        _log_decisions(decisions)
+        log(f"Geprueft {len(cards)}, qualifiziert {len(confirmed)}, zum Posten {len(new)}")
         if DRY_RUN:
-            log(f"Dry-Run: {len(new)} neue Deals wuerden gepostet.")
+            log(f"Dry-Run: {len(new)} bestaetigte Deals wuerden gepostet. Kein Discord, kein State.")
             return
+        sent = []
+        post_error = None
         if new:
-            post_discord(webhook, new)
-        update_history(st["history"], cards)
-        for d in new:
-            st["seen"][d["id"]] = datetime.now().strftime("%Y-%m-%d")
-        # alte Eintraege nach 60 Tagen vergessen
-        cutoff = datetime.now().timestamp() - 60 * 86400
-        st["seen"] = {k: v for k, v in st["seen"].items() if datetime.strptime(v, "%Y-%m-%d").timestamp() > cutoff}
+            try:
+                sent = post_discord(webhook, new, now=now) or []
+            except Exception as e:
+                post_error = e
+                sent = list(getattr(e, "sent", None) or [])
+        else:
+            log("Keine qualifizierten Deals. Kein Discord-Post.")
+        today = now.strftime("%Y-%m-%d")
+        for c in cards:
+            st["seen"][c["id"]] = today
+        for d in sent:
+            st["posted"][d["id"]] = today
+        cutoff = now.timestamp() - 60 * 86400
+        def _fresh(mapping):
+            kept = {}
+            for k, v in (mapping or {}).items():
+                try:
+                    ts = datetime.strptime(v, "%Y-%m-%d").replace(tzinfo=dv.ZURICH).timestamp()
+                except Exception:
+                    continue
+                if ts > cutoff:
+                    kept[k] = v
+            return kept
+        st["seen"] = _fresh(st.get("seen"))
+        st["posted"] = _fresh(st.get("posted"))
+        update_history(st.get("history") or {}, cards)
         save_state(st)
-        log(f"{len(new)} neue Deals gepostet.")
+        log(f"Geprueft {len(cards)}, qualifiziert {len(confirmed)}, gepostet {len(sent)}.")
+        if post_error is not None:
+            log(f"Discord-Fehler nach {len(sent)} erfolgreichen Posts, Rest nicht als posted markiert: {post_error}")
     finally:
         try:
             os.remove(LOCK_FILE)

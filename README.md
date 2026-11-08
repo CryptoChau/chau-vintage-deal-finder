@@ -1,11 +1,13 @@
 # CHAU Vintage Deal Finder
 
 Durchsucht eBay.ch (Sofort-Kaufen) automatisch alle 2 Stunden nach rohen Pokemon-Einzelkarten
-aus allen Aeren von 1996 bis 2016 (WOTC, e-Card, EX-Aera inkl. Gold Stars, Diamond & Pearl,
-Platinum, HGSS, Black & White, XY; englisch + japanisch; Holos, Gold Stars, beliebte und
-seltene Karten) und postet Angebote, die deutlich unter dem Median (aktuelle Angebote plus
-Preishistorie) liegen, mit Foto und Link in Discord (`#ebay-vintage-deals`). Gold Stars
-kommen zuerst. PSA-gegradete Karten gehoeren in den PSA-Bot.
+aus allen Aeren von 1996 bis 2016. Seltene Bulbasaur/Bisasam kommen zuerst (eigenes
+Roh-Budget CHF 400), danach andere Vintage-Holos. Ein Post entsteht nur bei exakter
+Identitaet (Nummer, Set, Ursprungsjahr, Sprache, Finish, Edition, Variante, Rohzustand),
+belegtem CH-Gesamtpreis und einem Preis unter dem Median von mindestens drei
+oeffentlichen Verkaeufen (90 Tage, sonst 180). Angebotspreise, Preishistorie und
+Preisguides sind kein Median. Ohne Treffer bleibt der Kanal still. PSA-Karten gehoeren
+in den PSA-Bot.
 
 Laeuft komplett in der Cloud via GitHub Actions - keine Abhaengigkeit vom lokalen PC.
 Details siehe `vintage_deal_finder.py` (Docstring) und `.github/workflows/deal-finder.yml`.
@@ -18,11 +20,7 @@ Zweiter Bot, sucht auf eBay.ch UND Ricardo.ch nach einzelnen versiegelten Booste
 
 ## PSA-Vintage-Deal-Finder
 
-Dritter Bot, sucht auf eBay.ch ausschliesslich nach PSA-gegradeten (PSA 1-10) Pokemon-Einzelkarten
-aus allen Aeren von 1996 bis 2016 (WOTC, e-Card, EX-Aera inkl. Gold Stars, Diamond & Pearl,
-Platinum, HGSS, Black & White, XY; Holos, Reverse Holos, Gold Stars, beliebte und seltene Karten),
-Preisfenster 20-200 CHF. Die Erkennung (Sets/Aeren, Namen, Varianten) kommt aus
-`vintage_deal_finder.py`. Der exakte PSA-Grade ist Teil des Vergleichsschluessels. Postet Ideen,
-die deutlich unter den anderen aktuellen Angeboten liegen, in `#psa-vintage-deals` - ausdruecklich
-KEIN Marktwert (eBay-Verkaufspreise brauchen Login), bitte in Collectr gegenpruefen. Details siehe
+Dritter Bot, sucht auf eBay.ch nach PSA-Einzelkarten bis 2016. Dieselbe Pruefung wie der
+Roh-Bot: exakter Grade, belegter Gesamtpreis strikt unter CHF 200, Median aus echten
+Verkaeufen. Ohne gelesenes Slab-Label wird nicht gepostet. Details siehe
 `psa_vintage_deal_finder.py` und `.github/workflows/psa-finder.yml`.

@@ -1,7 +1,8 @@
 name: CHAU Vintage Deal Finder
 
-# Laeuft alle 2 Stunden (Nutzerwunsch 2026-09-26: "soll ohne Computer laufen") und postet
-# Vintage-Pokemon-Holo/PSA-Deals von eBay.ch in Discord (#ebay-vintage-deals).
+# Laeuft alle 2 Stunden und postet nur bestaetigte Vintage-Deals in #ebay-vintage-deals.
+# Zeiten im Post sind Europe/Zurich. Geschaetzter Versand und Angebots-Mediane werden nicht gepostet.
+# dry_run postet nicht und schreibt keinen State.
 #
 # eBay blockt echten Headless-Chrome (getestet 2026-09-26 LOKAL: urllib, curl, Playwright
 # headless=True, Chrome "--headless=new" und sogar camoufox headless liefern alle nur eine
