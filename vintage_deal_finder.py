@@ -171,14 +171,11 @@ SETS = [
     ("DP Stormfront", r"storm\s*front", "DP/Pt"),
     ("Platinum Rising Rivals", r"rising\s*rivals", "DP/Pt"),
     ("Platinum Supreme Victors", r"supreme\s*victors", "DP/Pt"),
-    ("Platinum", r"\bplatinum\b", "DP/Pt"),
-    ("Diamond & Pearl", r"diamond\s*(?:&|and)?\s*pearl", "DP/Pt"),
     # ---- HeartGold SoulSilver
     ("HGSS Unleashed", r"\bunleashed\b", "HGSS"),
     ("HGSS Undaunted", r"\bundaunted\b", "HGSS"),
     ("HGSS Triumphant", r"\btriumphant\b", "HGSS"),
     ("HGSS Call of Legends", r"call\s*of\s*legends", "HGSS"),
-    ("HeartGold SoulSilver", r"heart\s*gold\s*(?:&|and)?\s*soul\s*silver|\bhgss\b", "HGSS"),
     # ---- Black & White
     ("BW Emerging Powers", r"emerging\s*powers", "BW"),
     ("BW Noble Victories", r"noble\s*victories", "BW"),
@@ -192,7 +189,6 @@ SETS = [
     ("BW Plasma Blast", r"plasma\s*blast", "BW"),
     ("BW Legendary Treasures", r"legendary\s*treasures", "BW"),
     ("BW Radiant Collection", r"radiant\s*collection", "BW"),
-    ("Black & White", r"black\s*(?:&|and)?\s*white\b", "BW"),
     # ---- XY
     ("XY Flashfire", r"flash\s*fire", "XY"),
     ("XY Furious Fists", r"furious\s*fists", "XY"),
@@ -207,9 +203,17 @@ SETS = [
     ("XY Steam Siege", r"steam\s*siege", "XY"),
     ("XY Generations", r"\bgenerations\b", "XY"),
     ("XY Evolutions", r"\bevolutions\b", "XY"),
-    ("XY", r"\bxy\b", "XY"),
     ("POP Series", r"\bpop\s*series\b|\bpop\s*\d\b", "EX"),
-    ("Black Star Promo", r"black\s*star\s*promo|\b(?:xy|bw|dp|hgss)\s*\d{2,3}\b", "Promo"),
+    # Promos VOR den generischen Serien-Namen (sonst wird "XY Black Star Promo" als Set "XY" erkannt
+    # und dieselbe Karte landet in zwei Toepfen); der Promo-Code (XY69, DP47, ...) wird Teil des
+    # Set-Namens, weil z.B. Rayquaza EX XY69 (Shiny) und XY73 voellig verschiedene Preise haben.
+    ("Black Star Promo", r"black\s*star\s*promo|\b(?:xy|bw|dp|hgss)\s*-?\s*\d{2,3}(?!\s*/)\b", "Promo"),
+    # ---- generische Serien-Namen (erst nach allen spezifischen Sets und Promos)
+    ("Platinum", r"\bplatinum\b", "DP/Pt"),
+    ("Diamond & Pearl", r"diamond\s*(?:&|and)?\s*pearl", "DP/Pt"),
+    ("HeartGold SoulSilver", r"heart\s*gold\s*(?:&|and)?\s*soul\s*silver|\bhgss\b", "HGSS"),
+    ("Black & White", r"black\s*(?:&|and)?\s*white\b", "BW"),
+    ("XY", r"\bxy\b", "XY"),
     # ---- WOTC-Rest / japanische Serien (generischer, deshalb ganz hinten)
     ("Team Rocket", r"team\s*rocket|\brocket\b", "WOTC"),
     ("Gym Heroes", r"gym\s*heroes", "WOTC"),
@@ -341,11 +345,18 @@ HOLO_RE = re.compile(r"\bholo(?:foil|graphic)?\b")
 FIRST_ED_RE = re.compile(r"1st\s*ed|first\s*edition|(?<![0-9a-z])1st(?![0-9a-z])")
 
 
+PROMO_CODE_RE = re.compile(r"\b(xy|bw|dp|hgss)\s*-?\s*(\d{2,3})(?!\s*/)\b")
+
+
 def detect_set(t):
     """(Set-Name, Aera, Match-Objekt) oder (None, None, None)."""
     for name, rx, era in SETS_C:
         m = rx.search(t)
         if m:
+            if name == "Black Star Promo":
+                pc = PROMO_CODE_RE.search(t)
+                if pc:
+                    name = f"Promo {pc.group(1).upper()}{pc.group(2)}"
             return name, era, m
     return None, None, None
 
@@ -397,7 +408,7 @@ def detect_variant(tt, base, era=None):
 
 
 def detect_grade(t):
-    m = re.search(r"\b(psa|bgs|cgc|beckett|ace)\s*-?\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6|5\.5|5|4|3|2|1)\b", t, re.I)
+    m = re.search(r"\b(psa|bgs|cgc|sgc|csg|ags|beckett|ace|pca|gma|mnt)\s*-?\s*(10|9\.5|9|8\.5|8|7\.5|7|6\.5|6|5\.5|5|4|3|2|1)\b", t, re.I)
     if m:
         return f"{m.group(1).upper()} {m.group(2)}"
     # eBays offizielle "Artikelzustand"-Stufen fuer ungegradete Sammelkarten:
@@ -417,7 +428,10 @@ def detect_grade(t):
     if re.search(r"\bdamaged\b|beschädigt", t, re.I):
         return "raw Damaged"
     # Fallback: generischer Titel-Slang, falls kein offizielles eBay-Zustandsfeld gefunden wurde.
-    if re.search(r"\b(nm|mint|exc?)\b", t, re.I):
+    # ACHTUNG: ein nacktes "EX" ist hier KEIN Zustand - es ist (ab EX-Aera) meist der Kartentyp
+    # ("Rayquaza EX", "Charizard-EX") und hat bei den erweiterten Aeren massenhaft Karten faelschlich
+    # als "Excellent" eingestuft. Zustand "EX" nur in Kombinationen wie "NM/EX", "EX-NM", "EXC".
+    if re.search(r"\b(nm|mint|exc)\b|\b(?:nm|ex)\s*[-/+]\s*(?:nm|ex|mint)\b", t, re.I):
         return "raw NM/EX (Titel)"
     if re.search(r"\b(lp|pl|vg\+?)\b", t, re.I):
         return "raw LP (Titel)"
@@ -538,17 +552,36 @@ def fetch_all():
     return items
 
 
+DROP_STATS = {}      # Diagnose: warum Angebote verworfen wurden (Grund -> Anzahl)
+GOLD_DROPPED = []    # Diagnose: verworfene Titel, die nach Gold Star aussehen (max. 40)
+
+
+def _drop(reason, title):
+    DROP_STATS[reason] = DROP_STATS.get(reason, 0) + 1
+    if len(GOLD_DROPPED) < 40 and re.search(r"gold\s*star|☆|★|\bstar\b", title, re.I):
+        GOLD_DROPPED.append(f"[{reason}] {title[:90]}")
+
+
 def classify(items):
     out = []
     for r in items.values():
         t = r["t"]
         full_text = " ".join([t, r.get("sub", ""), r.get("full", "")])
-        if EXCLUDE.search(t) or NONHOLO.search(t) or MODERN.search(t):
+        if EXCLUDE.search(t):
+            _drop("ausschluss-wort", t)
+            continue
+        if NONHOLO.search(t):
+            _drop("non-holo/reverse", t)
+            continue
+        if MODERN.search(t):
+            _drop("modern(ab 2017)", t)
             continue
         if PSA_GRADED.search(full_text):
-            continue  # eigener PSA-Bot
+            _drop("psa(eigener bot)", t)
+            continue
         price = parse_chf(r["p"])
         if price is None:
+            _drop("kein-preis", t)
             continue
         is_jp_seller = is_japan_origin(r.get("country", ""))
         ship = parse_shipping(r["s"])
@@ -560,6 +593,7 @@ def classify(items):
         total = round(price + ship, 2)
         sset, era, sm = detect_set(norm(t))
         if not sset:
+            _drop("kein-set", t)
             continue
         # Set-Namen aus dem Titel entfernen, bevor Name/Variante gesucht werden (sonst steckt
         # z.B. "Dragon" in "EX Dragon Frontiers" oder "Black"/"White" im Set-Namen in den Tags).
@@ -569,6 +603,7 @@ def classify(items):
         if not disp_name:
             disp_name, base = detect_name(tn)
         if not disp_name:
+            _drop("kein-name", t)
             continue
         tt = COND_STRIP.sub(" ", tn_wo_set)
         variant, tags = detect_variant(tt, base, era)
@@ -744,7 +779,28 @@ def main():
         for c in cards:
             by_era[c["era"]] = by_era.get(c["era"], 0) + 1
         log("Klassifiziert pro Aera: " + ", ".join(f"{k}={v}" for k, v in sorted(by_era.items())))
-        new = [d for d in deals if d["id"] not in st["seen"]][:MAX_POSTS_PER_RUN]
+        by_tier = {}
+        for c in cards:
+            by_tier[c["tier"]] = by_tier.get(c["tier"], 0) + 1
+        log("Klassifiziert pro Stufe (0=Gold Star, 1=beliebt+selten, 2=eins davon, 3=Rest): "
+            + ", ".join(f"{k}={v}" for k, v in sorted(by_tier.items())))
+        log("Verworfen: " + ", ".join(f"{k}={v}" for k, v in sorted(DROP_STATS.items())))
+        for gd in GOLD_DROPPED[:25]:
+            log("  verworfen (Gold-Star-verdaechtig) " + gd)
+        gold_cards = [c for c in cards if c["tier"] == 0]
+        log(f"Gold-Star-Karten klassifiziert: {len(gold_cards)}")
+        for c in sorted(gold_cards, key=lambda x: x["total"])[:12]:
+            log(f"  GOLD {c['set']} | {c['name']} | CHF {c['total']:.2f} | {c['title'][:70]}")
+        # Pro Karte hoechstens 2 Meldungen pro Lauf, sonst fuellt eine einzelne Karte (z.B. mehrere
+        # Rayquaza-EX-Promos) die ganze Liste - so verteilen sich die Meldungen ueber mehr Karten.
+        new, per_key = [], {}
+        for d in deals:
+            if d["id"] in st["seen"] or per_key.get(d["key"], 0) >= 2:
+                continue
+            per_key[d["key"]] = per_key.get(d["key"], 0) + 1
+            new.append(d)
+            if len(new) >= MAX_POSTS_PER_RUN:
+                break
         for d in deals[:30]:
             log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}T{d['tier']} {d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
         if DRY_RUN:
