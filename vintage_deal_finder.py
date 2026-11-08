@@ -879,6 +879,14 @@ def cards_needing_solds(cards):
 
 
 def resolve_deals(cards, solds_by_key=None, notes_by_key=None, now=None):
+    checked = []
+    for card in cards:
+        if card.get("mode") == "psa" and not card.get("drop"):
+            card = dv.apply_visual_slab_check(card)
+            if not dv.visual_slab_ok(card):
+                card["needs_sold_lookup"] = False
+        checked.append(card)
+    cards = checked
     if solds_by_key is None:
         lookup = cards_needing_solds(cards)
         capped = {c["key"] for c in lookup}
@@ -893,7 +901,7 @@ def resolve_deals(cards, solds_by_key=None, notes_by_key=None, now=None):
 def run_priority_sample(now=None):
     """Ein Lauf: seltene Bulbasaur/Bisasam-Rohkarten und PSA-Vintage bis 2016.
 
-    Kein Discord, kein State. PSA-Slabs werden hier nicht optisch gelesen.
+    Kein Discord, kein State. PSA-Fotos werden nur gelesen, wenn resolve_deals laeuft.
     """
     notes, dropped, cards = [], [], []
     solds, sold_notes = {}, {}

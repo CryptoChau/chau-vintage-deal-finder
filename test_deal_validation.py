@@ -388,18 +388,16 @@ class DealValidationTests(unittest.TestCase):
         self.assertIn("psa-slab-label-not-verified", blocked["reasons"])
         self.assertIsNone(blocked["percent_below"])
         self.assertEqual(len(blocked["solds_observed"]), 3)
-        opted = dict(card)
-        opted["slab_verified"] = True
-        confirmed = dv.decide(opted, solds, now=NOW)
-        self.assertEqual(confirmed["status"], "confirmed")
-        self.assertTrue(confirmed["title"].startswith("TEST DATA"))
-        self.assertNotIn("ebay.ch/itm", confirmed["url"])
+        flagged = dict(card)
+        flagged["slab_verified"] = True
+        self.assertFalse(dv.visual_slab_ok(flagged))
+        self.assertNotEqual(dv.decide(flagged, solds, now=NOW)["status"], "confirmed")
         other_grade = dict(solds[0])
         other_grade["id"] = "TESTDATA-PSA-9"
         other_grade["condition"] = "PSA 9"
         other_grade["key"] = dv.make_key(other_grade)
         only_nines = [dict(s, id=f"TESTDATA-NINE-{i}", condition="PSA 9", key=other_grade["key"]) for i, s in enumerate(solds)]
-        self.assertNotEqual(dv.decide(opted, only_nines, now=NOW)["status"], "confirmed")
+        self.assertNotEqual(dv.decide(flagged, only_nines, now=NOW)["status"], "confirmed")
         no_photo = dv.parse_listing(item(
             "Bulbasaur Holo 15/102 Base Set English Unlimited PSA 8",
             img="",

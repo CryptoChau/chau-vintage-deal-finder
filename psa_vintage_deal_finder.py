@@ -11,8 +11,10 @@ deal_validation.py. Dieselbe Identitaet (Nummer, Set, Jahr, Sprache, Finish,
 Edition, Variante, exakter PSA-Grade) gilt fuer beide Bots.
 
 WICHTIG
-- Nur PSA 1-10. PSA 9 und PSA 10 werden nie gemischt. Ohne gelesenes Slab-Label
-  (diese Codebasis oeffnet das Foto nicht) bleibt die Karte unverified.
+- Nur PSA 1-10. PSA 9 und PSA 10 werden nie gemischt. Das Listing-Foto wird
+  lokal per OCR gelesen. Die Note gilt nur, wenn der Labeltext zu Identitaet
+  und Grade passt. Das ist kein PSA-Zertifikatscheck. Titel oder Bild-URL allein
+  reichen nicht. Fehlt Tesseract oder ist das Foto unleserlich, bleibt die Karte unverified.
 - Angebotspreise und Preisguides sind kein Median. Bestaetigt wird nur ein
   belegter Gesamtpreis unter CHF 200, inklusive bekanntem Versand und bekannter
   Einfuhr, und nur unter dem Median echter Verkaeufe (mindestens 3, 90 sonst 180 Tage).

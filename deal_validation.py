@@ -16,8 +16,8 @@ Collectr-Richtwert und Angebotspreise sind keine Verkaufsmediane.
 Bestaetigt wird nur eine exakte Identitaet (Nummer, Set, Ursprungsjahr,
 Sprache, Finish, Edition, Variante, Zustand) mit belegtem CH-Gesamtpreis
 und mindestens drei unterschiedlichen oeffentlichen Verkaeufen im 90-Tage-
-Fenster, sonst 180 Tage. PSA zusaetzlich nur unter CHF 200 und nie ohne
-Slab-Pruefung (diese Codebasis liest das Slab-Foto nicht).
+Fenster, sonst 180 Tage. PSA zusaetzlich nur unter CHF 200 und nur wenn das
+Listing-Foto per lokalem OCR zum Label passt. Das ist kein Zertifikatscheck.
 """
 from __future__ import annotations
 
@@ -25,6 +25,8 @@ import re
 import statistics
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
+
+import slab_label
 
 ZURICH = ZoneInfo("Europe/Zurich")
 
@@ -823,7 +825,7 @@ def decide(card, solds=None, now=None, sold_note=None):
         status = "rejected"
     elif not card.get("identity_complete") or not card.get("photo_ok"):
         status = "unverified"
-    elif card.get("mode") == "psa" and not card.get("slab_verified"):
+    elif card.get("mode") == "psa" and not visual_slab_ok(card):
         status = "unverified"
         if "psa-slab-label-not-verified" not in reasons:
             reasons.append("psa-slab-label-not-verified")
@@ -836,7 +838,7 @@ def decide(card, solds=None, now=None, sold_note=None):
     elif "not-below-sold-median" in reasons:
         status = "nonqualified"
     elif median is not None and card.get("all_in_confirmed") and card["all_in_chf"] < median and len(used) >= SOLD_MIN:
-        if card.get("mode") == "psa" and not card.get("slab_verified"):
+        if card.get("mode") == "psa" and not visual_slab_ok(card):
             status = "unverified"
         else:
             status = "confirmed"
@@ -943,6 +945,25 @@ def normalize_state(st):
     return st
 
 
+def visual_slab_ok(card):
+    """PSA ist nur bestaetigt, wenn das Foto per OCR zum Label passt.
+
+    Ein gesetztes slab_verified ohne slab_check reicht nicht. OCR ist kein
+    Nachweis, dass PSA die Karte zertifiziert hat.
+    """
+    if card.get("mode") != "psa":
+        return True
+    return (
+        card.get("slab_verified") is True
+        and card.get("slab_check") == "visual-label-ocr"
+        and card.get("slab_cert_authenticated") is False
+    )
+
+
+def apply_visual_slab_check(card, image_bytes=None):
+    return slab_label.apply_visual_slab_check(card, image_bytes=image_bytes)
+
+
 def discord_description(d, now=None):
     if d.get("status") != "confirmed" or d.get("median_kind") != "sold":
         raise RuntimeError("nur bestaetigte Verkaeufe duerfen als Deal formuliert werden")
@@ -950,8 +971,8 @@ def discord_description(d, now=None):
         raise RuntimeError("geschaetzter Versand ist kein bestaetigter Gesamtpreis")
     if d.get("percent_below") is None or d.get("n", 0) < SOLD_MIN or not d.get("median"):
         raise RuntimeError("Median ohne genug Verkaeufe")
-    if d.get("mode") == "psa" and not d.get("slab_verified"):
-        raise RuntimeError("PSA ohne gelesenen Slab-Label")
+    if d.get("mode") == "psa" and not visual_slab_ok(d):
+        raise RuntimeError("PSA ohne gelesenes Slab-Label")
     import_bit = ""
     if d.get("import_chf"):
         import_bit = f" + Einfuhr/Handling/Proxy {d['import_chf']:.2f}"
@@ -964,11 +985,15 @@ def discord_description(d, now=None):
         f"Nr. {d.get('number_display')} {rarity}",
         f"Finish: {d.get('finish')}, Edition: {d.get('edition')}, Variante: {d.get('variant')}, "
         f"Zustand: {d.get('condition')}",
+    ]
+    if d.get("mode") == "psa":
+        lines.append("Slab-Label im Listing-Foto visuell gelesen (OCR). Kein PSA-Zertifikatscheck.")
+    lines.extend([
         f"**{d['percent_below']} % unter verkauftem Median** "
         f"(Median CHF {d['median']:.2f}, n={d['n']}, Fenster {d['window_days']} Tage, "
         f"{d.get('window_start')}–{d.get('window_end')} Europe/Zurich)",
         "Verkaeufe (oeffentliche eBay-Verkaufspreise, keine Angebotspreise):",
-    ]
+    ])
     for s in d.get("solds_used") or []:
         lines.append(f"- {s['date']} CHF {s['all_in_chf']:.2f} {s['url']}")
     lines.append(f"[Zum Angebot]({d['url']})")
@@ -1028,6 +1053,9 @@ def artifact_record(d):
         "percent_below": d.get("percent_below") if confirmed else None,
         "status": d.get("status"),
         "reasons": d.get("reasons") or [],
+        "slab_check": d.get("slab_check"),
+        "slab_verified": bool(d.get("slab_verified")),
+        "slab_cert_authenticated": False,
     }
 
 
