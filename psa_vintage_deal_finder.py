@@ -96,6 +96,15 @@ OTHER_GRADER = re.compile(r"\b(bgs|cgc|beckett|ace|sgc|csg)\s*-?\s*(10|9\.5|9|8\
 # Reverse Holo ist hier ERWUENSCHT (eigene Variante im Schluessel), Non-Holo/Common nicht.
 NONHOLO_ONLY = re.compile(r"non[\s-]?holo|no[\s-]?holo|nicht[\s-]?holo|\bregular\b|\bcommon\b|uncommon", re.I)
 REVERSE_RE = re.compile(r"reverse|rev\.?\s*holo")
+# Karten ab 2017, die v.MODERN nicht erkennt (Bug 2026-11-08: "Team Rocket's Mewtwo ex" / "Glory of
+# Team Rocket" von 2025 wurde als WOTC-Set "Team Rocket" einsortiert; japanische Set-Codes M2a etc.).
+MODERN_EXTRA = re.compile(
+    r"glory\s*of\s*team\s*rocket|team\s*rocket'?s\s+\w+(?:\s+\w+)?\s+ex\b|"
+    r"(?<![a-z0-9])m\d[a-z]?(?![a-z0-9])|mega\s*dream|inferno\s*x|nihil\s*zero|battle\s*partners|terastal|"
+    r"super\s*electric|heat\s*wave|wild\s*force|cyber\s*judge|shiny\s*treasure|snow\s*hazard|clay\s*burst",
+    re.I,
+)
+MAX_PER_KEY_PER_RUN = 2  # gleiche Karte (gleicher Schluessel) hoechstens 2x pro Lauf posten (kein Spam)
 
 
 def log(msg):
@@ -148,7 +157,7 @@ def classify(items):
     for r in items.values():
         t = r["t"]
         full_text = " ".join([t, r.get("sub", ""), r.get("full", "")])
-        if v.EXCLUDE.search(t) or NONHOLO_ONLY.search(t) or v.MODERN.search(t):
+        if v.EXCLUDE.search(t) or NONHOLO_ONLY.search(t) or v.MODERN.search(t) or MODERN_EXTRA.search(v.norm(t)):
             continue
         # Nur PSA; andere Grader ohne PSA verwerfen.
         if OTHER_GRADER.search(full_text) and not PSA_GRADE.search(full_text):
@@ -335,7 +344,14 @@ def main():
         cards = classify(items)
         deals = find_deals(cards, st["history"])
         log(f"{len(items)} Angebote geladen, {len(cards)} PSA-klassifiziert, {len(deals)} Deals gesamt")
-        new = [d for d in deals if d["id"] not in st["seen"]][:MAX_POSTS_PER_RUN]
+        new, per_key = [], {}
+        for d in deals:
+            if d["id"] in st["seen"] or per_key.get(d["key"], 0) >= MAX_PER_KEY_PER_RUN:
+                continue
+            per_key[d["key"]] = per_key.get(d["key"], 0) + 1
+            new.append(d)
+            if len(new) >= MAX_POSTS_PER_RUN:
+                break
         for d in deals[:25]:
             log(f"  {'NEU ' if d['id'] not in st['seen'] else '    '}T{d['tier']} {d['ratio']:.2f}x CHF {d['total']:.2f} (Median {d['median']:.2f}, n={d['n']}) {d['key']} | {d['title'][:70]} | {d['url']}")
         if DRY_RUN:
