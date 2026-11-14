@@ -1811,7 +1811,11 @@
 "267838852135": "2026-11-09",
 "227603449315": "2026-11-09",
 "377622875272": "2026-11-09",
-"900035994673": "2026-11-09"
+"900035994673": "2026-11-09",
+"287722572648": "2026-11-14",
+"920136976193": "2026-11-14",
+"117517638001": "2026-11-14",
+"900086139890": "2026-11-14"
 },
 "history": {
 "EN|Promo DP45|Charizard|LV.X|PSA 1": {
@@ -8188,6 +8192,10 @@
 "820333455554": {
 "total": 220.13,
 "last_seen": "2026-11-09"
+},
+"840115863693": {
+"total": 197.27,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Haunter|Std|PSA 7": {
@@ -8214,6 +8222,10 @@
 "117505168090": {
 "total": 201.51,
 "last_seen": "2026-11-08"
+},
+"117516998380": {
+"total": 133.81,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Aerodactyl|Std|PSA 7": {
@@ -8232,18 +8244,34 @@
 "137908131257": {
 "total": 87.08,
 "last_seen": "2026-11-09"
+},
+"900086139890": {
+"total": 61.27,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Magneton|Std|PSA 7": {
 "860123194609": {
 "total": 81.5,
 "last_seen": "2026-11-08"
+},
+"900089508690": {
+"total": 141.97,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Haunter|Std|PSA 1": {
 "307272058918": {
 "total": 113.7,
 "last_seen": "2026-11-09"
+},
+"117518506293": {
+"total": 115.67,
+"last_seen": "2026-11-14"
+},
+"206693068795": {
+"total": 120.21,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Kabutops|Std|PSA 9": {
@@ -8258,6 +8286,18 @@
 "307248615884": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"920140617699": {
+"total": 114.77,
+"last_seen": "2026-11-14"
+},
+"287725745943": {
+"total": 115.67,
+"last_seen": "2026-11-14"
+},
+"920132549182": {
+"total": 129.28,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Magneton|Std|PSA 7": {
@@ -8306,6 +8346,10 @@
 "820328854772": {
 "total": 113.69,
 "last_seen": "2026-11-09"
+},
+"227611194470": {
+"total": 111.04,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Kabutops|Std|PSA 8": {
@@ -8320,6 +8364,10 @@
 "267824829179": {
 "total": 112.81,
 "last_seen": "2026-11-09"
+},
+"407356765418": {
+"total": 177.33,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Ekans|Std+1st|PSA 6": {
@@ -8336,6 +8384,10 @@
 "900069078746": {
 "total": 157.16,
 "last_seen": "2026-11-09"
+},
+"880106236438": {
+"total": 142.87,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Lapras|Std|PSA 8": {
@@ -8358,6 +8410,10 @@
 "820334356985": {
 "total": 125.67,
 "last_seen": "2026-11-09"
+},
+"117517638001": {
+"total": 69.43,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Slowpoke|Std+1st|PSA 9": {
@@ -8368,6 +8424,14 @@
 "900072149757": {
 "total": 191.75,
 "last_seen": "2026-11-09"
+},
+"940089776011": {
+"total": 115.67,
+"last_seen": "2026-11-14"
+},
+"117518272849": {
+"total": 115.67,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Magneton|Std|PSA 8": {
@@ -8394,6 +8458,10 @@
 "128181462901": {
 "total": 273.35,
 "last_seen": "2026-11-09"
+},
+"307276566539": {
+"total": 206.34,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Hitmonlee|Std|PSA 9": {
@@ -8420,6 +8488,10 @@
 "860122235468": {
 "total": 126.2,
 "last_seen": "2026-11-09"
+},
+"227610013542": {
+"total": 161.0,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Articuno|Std|PSA 8": {
@@ -8456,12 +8528,20 @@
 "117505790181": {
 "total": 193.51,
 "last_seen": "2026-11-09"
+},
+"117516757926": {
+"total": 97.53,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Slowbro|Std+1st|PSA 1": {
 "117509492085": {
 "total": 140.3,
 "last_seen": "2026-11-09"
+},
+"900082748352": {
+"total": 142.87,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Seadra|Std+1st|PSA 10": {
@@ -8506,6 +8586,14 @@
 "147670367895": {
 "total": 171.35,
 "last_seen": "2026-11-09"
+},
+"117519892573": {
+"total": 251.64,
+"last_seen": "2026-11-14"
+},
+"307277850854": {
+"total": 251.68,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Neo Revelation|Aerodactyl|Std|PSA 9": {
@@ -8560,12 +8648,24 @@
 "227606125757": {
 "total": 94.8,
 "last_seen": "2026-11-09"
+},
+"920136976193": {
+"total": 97.53,
+"last_seen": "2026-11-14"
+},
+"287722572648": {
+"total": 72.14,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Lapras|Std|PSA 6": {
 "900072024317": {
 "total": 91.51,
 "last_seen": "2026-11-09"
+},
+"900084554273": {
+"total": 87.57,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Zapdos|Std|PSA 5": {
@@ -8576,6 +8676,10 @@
 "168842517246": {
 "total": 60.48,
 "last_seen": "2026-11-09"
+},
+"307278564999": {
+"total": 83.93,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Kabutops|Std|PSA 6": {
@@ -8586,6 +8690,10 @@
 "137908633493": {
 "total": 143.43,
 "last_seen": "2026-11-09"
+},
+"307278549967": {
+"total": 83.94,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Ekans|Std+1st|PSA 9": {
@@ -8614,6 +8722,14 @@
 "147672049724": {
 "total": 73.79,
 "last_seen": "2026-11-09"
+},
+"940089952177": {
+"total": 79.36,
+"last_seen": "2026-11-14"
+},
+"257850965779": {
+"total": 79.86,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Geodude|Std|PSA 10": {
@@ -8652,6 +8768,10 @@
 "900078220050": {
 "total": 246.74,
 "last_seen": "2026-11-09"
+},
+"800911668182": {
+"total": 229.0,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Muk|Std|PSA 6": {
@@ -8686,6 +8806,14 @@
 "820333891124": {
 "total": 95.96,
 "last_seen": "2026-11-09"
+},
+"307280884175": {
+"total": 108.86,
+"last_seen": "2026-11-14"
+},
+"117517822539": {
+"total": 96.63,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Moltres|Std|PSA 9": {
@@ -8734,6 +8862,10 @@
 "307270554666": {
 "total": 148.29,
 "last_seen": "2026-11-09"
+},
+"407354745434": {
+"total": 129.28,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Aerodactyl|Std|PSA 8": {
@@ -8744,6 +8876,10 @@
 "168844175256": {
 "total": 132.37,
 "last_seen": "2026-11-09"
+},
+"820343903066": {
+"total": 101.84,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Lapras|Std|PSA 9": {
@@ -8768,6 +8904,10 @@
 "117510619111": {
 "total": 219.25,
 "last_seen": "2026-11-09"
+},
+"307281545826": {
+"total": 115.67,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Magneton|Std|PSA 4": {
@@ -8810,18 +8950,34 @@
 "257691167339": {
 "total": 86.19,
 "last_seen": "2026-11-09"
+},
+"206690679259": {
+"total": 97.54,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Kabuto|Std+1st|PSA 8": {
 "147669199866": {
 "total": 72.36,
 "last_seen": "2026-11-09"
+},
+"940090004911": {
+"total": 56.69,
+"last_seen": "2026-11-14"
+},
+"117518074764": {
+"total": 93.01,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Golem|Std+1st|PSA 7": {
 "117508008687": {
 "total": 95.95,
 "last_seen": "2026-11-09"
+},
+"307279289368": {
+"total": 87.57,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Magneton|Std|PSA 9": {
@@ -8840,6 +8996,14 @@
 "366796352449": {
 "total": 202.39,
 "last_seen": "2026-11-09"
+},
+"257850965561": {
+"total": 134.72,
+"last_seen": "2026-11-14"
+},
+"407356766326": {
+"total": 182.59,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Gengar|Std|PSA 4": {
@@ -8914,6 +9078,10 @@
 "198741065131": {
 "total": 213.4,
 "last_seen": "2026-11-08"
+},
+"227610019387": {
+"total": 133.8,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Magneton|Secret Rare|PSA 9": {
@@ -8954,6 +9122,18 @@
 "206529904438": {
 "total": 132.36,
 "last_seen": "2026-11-09"
+},
+"307281887886": {
+"total": 123.84,
+"last_seen": "2026-11-14"
+},
+"307279495522": {
+"total": 141.97,
+"last_seen": "2026-11-14"
+},
+"900086309588": {
+"total": 115.67,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Zubat|Std+1st|PSA 9": {
@@ -8994,6 +9174,10 @@
 "900069502602": {
 "total": 202.38,
 "last_seen": "2026-11-09"
+},
+"880107924558": {
+"total": 138.3,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Muk|Std|PSA 8": {
@@ -9016,6 +9200,10 @@
 "860117583255": {
 "total": 160.89,
 "last_seen": "2026-11-09"
+},
+"860133514858": {
+"total": 154.03,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Kabutops|Std+1st|PSA 5": {
@@ -9080,12 +9268,20 @@
 "407347729730": {
 "total": 140.3,
 "last_seen": "2026-11-08"
+},
+"128191435792": {
+"total": 102.06,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Haunter|Std+1st|PSA 6": {
 "117506992878": {
 "total": 148.29,
 "last_seen": "2026-11-09"
+},
+"117515835790": {
+"total": 201.82,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Shellder|Std|PSA 9": {
@@ -9104,6 +9300,10 @@
 "860117096599": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"366805832991": {
+"total": 138.83,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Articuno|Std|PSA 9": {
@@ -9134,6 +9334,10 @@
 "398351617053": {
 "total": 79.88,
 "last_seen": "2026-11-09"
+},
+"237181729530": {
+"total": 79.4,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Aerodactyl|Std|PSA 4": {
@@ -9154,6 +9358,10 @@
 "407323672634": {
 "total": 193.52,
 "last_seen": "2026-11-09"
+},
+"336896349212": {
+"total": 93.01,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Raichu|Std+1st|PSA 7": {
@@ -9178,12 +9386,24 @@
 "307268584636": {
 "total": 86.2,
 "last_seen": "2026-11-09"
+},
+"840125381883": {
+"total": 52.19,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Gengar|Std|PSA 8": {
 "940068419656": {
 "total": 245.85,
 "last_seen": "2026-11-09"
+},
+"840124989481": {
+"total": 133.81,
+"last_seen": "2026-11-14"
+},
+"117517792002": {
+"total": 196.38,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Moltres|Std+1st|PSA 7": {
@@ -9252,6 +9472,10 @@
 "168839414586": {
 "total": 113.56,
 "last_seen": "2026-11-09"
+},
+"407356764519": {
+"total": 274.18,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Lapras|Std+1st|PSA 9": {
@@ -9278,12 +9502,20 @@
 "168839396885": {
 "total": 157.83,
 "last_seen": "2026-11-09"
+},
+"960182916625": {
+"total": 240.62,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Slowpoke|Std|PSA 9": {
 "377622869952": {
 "total": 175.78,
 "last_seen": "2026-11-09"
+},
+"407356763983": {
+"total": 178.24,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Psyduck|Std|PSA 9": {
@@ -9302,12 +9534,24 @@
 "860079080017": {
 "total": 235.89,
 "last_seen": "2026-11-08"
+},
+"407356087553": {
+"total": 182.65,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Lapras|Std|PSA 4": {
 "336880716493": {
 "total": 54.26,
 "last_seen": "2026-11-08"
+},
+"117519603361": {
+"total": 61.27,
+"last_seen": "2026-11-14"
+},
+"960180489090": {
+"total": 74.88,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Raichu|Std+1st|PSA 9": {
@@ -9336,6 +9580,10 @@
 "257842120790": {
 "total": 135.87,
 "last_seen": "2026-11-09"
+},
+"377641507835": {
+"total": 217.23,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Ditto|Std|PSA 9": {
@@ -9392,6 +9640,10 @@
 "307266784613": {
 "total": 75.2,
 "last_seen": "2026-11-08"
+},
+"940089953213": {
+"total": 79.36,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Kingler|Std+1st|PSA 9": {
@@ -9424,6 +9676,10 @@
 "336887577637": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"900084186389": {
+"total": 229.0,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Omanyte|Std|PSA 9": {
@@ -9438,6 +9694,10 @@
 "860077774295": {
 "total": 82.66,
 "last_seen": "2026-11-08"
+},
+"377641520131": {
+"total": 102.08,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Kabutops|Std|PSA 4": {
@@ -16470,6 +16730,14 @@
 "227594311651": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"137923774430": {
+"total": 52.19,
+"last_seen": "2026-11-14"
+},
+"147676378646": {
+"total": 70.34,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Team Rocket|Dugtrio|Std|PSA 8": {
@@ -16528,6 +16796,10 @@
 "920082328273": {
 "total": 240.55,
 "last_seen": "2026-11-08"
+},
+"307281025720": {
+"total": 251.68,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Jungle|Clefable|Std|PSA 7": {
@@ -16928,6 +17200,10 @@
 "206496313714": {
 "total": 58.35,
 "last_seen": "2026-11-09"
+},
+"307279491824": {
+"total": 78.5,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Team Rocket|Dark Raichu|Secret Rare|PSA 4": {
@@ -18324,6 +18600,10 @@
 "900046655398": {
 "total": 233.44,
 "last_seen": "2026-11-09"
+},
+"407354744737": {
+"total": 179.15,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Slowbro|Std|PSA 9": {
@@ -18338,6 +18618,10 @@
 "900075630535": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"377641505621": {
+"total": 248.06,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Tentacruel|Std|PSA 6": {
@@ -18360,6 +18644,10 @@
 "206680188844": {
 "total": 52.93,
 "last_seen": "2026-11-09"
+},
+"128191041501": {
+"total": 70.34,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Mew|Std|PSA 7": {
@@ -18394,6 +18682,10 @@
 "128169118418": {
 "total": 51.6,
 "last_seen": "2026-11-09"
+},
+"307278385940": {
+"total": 54.01,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Ekans|Std|PSA 9": {
@@ -18408,12 +18700,20 @@
 "800859521248": {
 "total": 121.4,
 "last_seen": "2026-11-09"
+},
+"287725907313": {
+"total": 54.92,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Kingler|Std|PSA 9": {
 "206668073431": {
 "total": 56.93,
 "last_seen": "2026-11-08"
+},
+"267841597976": {
+"total": 52.55,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Psyduck|Std|PSA 1": {
@@ -18430,6 +18730,10 @@
 "840081765220": {
 "total": 55.15,
 "last_seen": "2026-11-09"
+},
+"407358456833": {
+"total": 153.76,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Raichu|Std|PSA 6": {
@@ -18474,12 +18778,20 @@
 "800894891853": {
 "total": 143.42,
 "last_seen": "2026-11-09"
+},
+"920133384622": {
+"total": 124.74,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Raichu|Std|PSA 9": {
 "900053827481": {
 "total": 264.44,
 "last_seen": "2026-11-09"
+},
+"117519410780": {
+"total": 206.35,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Dragonite|Std|PSA 1": {
@@ -18494,6 +18806,10 @@
 "407323662209": {
 "total": 198.85,
 "last_seen": "2026-11-09"
+},
+"800911853656": {
+"total": 247.14,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Hitmonlee|Std|PSA 6": {
@@ -18516,12 +18832,20 @@
 "117511189879": {
 "total": 158.04,
 "last_seen": "2026-11-09"
+},
+"377641511929": {
+"total": 255.31,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Kabutops|EX|PSA 5": {
 "257822603229": {
 "total": 73.77,
 "last_seen": "2026-11-09"
+},
+"960180489008": {
+"total": 74.88,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Neo Revelation|Aerodactyl|Std|PSA 9": {
@@ -41562,6 +41886,10 @@
 "366794323291": {
 "total": 125.22,
 "last_seen": "2026-11-09"
+},
+"940089987200": {
+"total": 52.16,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Gengar|Std|PSA 7": {
@@ -41576,6 +41904,22 @@
 "307272929716": {
 "total": 242.31,
 "last_seen": "2026-11-09"
+},
+"377644576671": {
+"total": 260.3,
+"last_seen": "2026-11-14"
+},
+"377641457813": {
+"total": 278.89,
+"last_seen": "2026-11-14"
+},
+"257848035640": {
+"total": 260.75,
+"last_seen": "2026-11-14"
+},
+"307276733864": {
+"total": 267.91,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Hitmonlee|Std|PSA 7": {
@@ -47348,6 +47692,14 @@
 "900075723961": {
 "total": 131.43,
 "last_seen": "2026-11-09"
+},
+"117518506405": {
+"total": 115.67,
+"last_seen": "2026-11-14"
+},
+"117517809601": {
+"total": 133.8,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Tentacruel|Std+1st|PSA 9": {
@@ -47372,12 +47724,20 @@
 "900075475320": {
 "total": 153.61,
 "last_seen": "2026-11-09"
+},
+"900081598078": {
+"total": 102.08,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Kabutops|Std+1st|PSA 8": {
 "860124629852": {
 "total": 224.57,
 "last_seen": "2026-11-09"
+},
+"840116986000": {
+"total": 228.56,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Team Rocket|Charmander|Std|PSA 7": {
@@ -48086,6 +48446,18 @@
 "206685520047": {
 "total": 79.99,
 "last_seen": "2026-11-09"
+},
+"900089302469": {
+"total": 74.82,
+"last_seen": "2026-11-14"
+},
+"117519131105": {
+"total": 251.64,
+"last_seen": "2026-11-14"
+},
+"307278277350": {
+"total": 88.46,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Moltres|Std|PSA 6": {
@@ -48922,6 +49294,10 @@
 "227605142768": {
 "total": 64.9,
 "last_seen": "2026-11-09"
+},
+"960180489094": {
+"total": 74.88,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Moltres|Std|PSA 4": {
@@ -50050,12 +50426,20 @@
 "820335777534": {
 "total": 60.47,
 "last_seen": "2026-11-09"
+},
+"128192625625": {
+"total": 61.26,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Zubat|Std+1st|PSA 7": {
 "227606126996": {
 "total": 81.14,
 "last_seen": "2026-11-09"
+},
+"940089990479": {
+"total": 47.62,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Dragonite|Std+1st|PSA 8": {
@@ -50072,6 +50456,10 @@
 "860128429650": {
 "total": 126.2,
 "last_seen": "2026-11-09"
+},
+"307276913813": {
+"total": 88.46,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Zubat|Std|PSA 9": {
@@ -50090,12 +50478,20 @@
 "227606112873": {
 "total": 65.2,
 "last_seen": "2026-11-09"
+},
+"307279619659": {
+"total": 88.47,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Moltres|Std|PSA 6": {
 "900078245750": {
 "total": 60.48,
 "last_seen": "2026-11-09"
+},
+"198790622083": {
+"total": 61.27,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Aerodactyl|Std|PSA 3": {
@@ -50120,6 +50516,10 @@
 "147673439218": {
 "total": 78.28,
 "last_seen": "2026-11-09"
+},
+"307279528392": {
+"total": 96.63,
+"last_seen": "2026-11-14"
 }
 },
 "EN|Fossil|Slowpoke|EX+1st|PSA 6": {
@@ -50148,6 +50548,10 @@
 "117512674006": {
 "total": 82.66,
 "last_seen": "2026-11-09"
+},
+"307279406291": {
+"total": 97.53,
+"last_seen": "2026-11-14"
 }
 },
 "JP|Fossil|Mew|Std|PSA 2": {
@@ -50820,6 +51224,414 @@
 "117512765147": {
 "total": 126.99,
 "last_seen": "2026-11-09"
+}
+},
+"JP|Fossil|Raichu|Secret Rare|PSA 7": {
+"820353028152": {
+"total": 202.78,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Raichu|Std|PSA 8": {
+"327455364239": {
+"total": 142.87,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Magneton|Std|PSA 9": {
+"880114627126": {
+"total": 133.8,
+"last_seen": "2026-11-14"
+},
+"840117616866": {
+"total": 123.25,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Hitmonlee|EX|PSA 6": {
+"920140926802": {
+"total": 65.81,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Gengar|Std|PSA 5": {
+"237181729526": {
+"total": 174.62,
+"last_seen": "2026-11-14"
+},
+"137921992214": {
+"total": 169.17,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Muk|Std|PSA 1": {
+"307281499222": {
+"total": 92.96,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Tentacruel|Std+1st|PSA 8": {
+"940090023471": {
+"total": 61.23,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Weezing|Std+1st|PSA 8": {
+"940090017050": {
+"total": 52.16,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Moltres|Std|PSA 5": {
+"336896353856": {
+"total": 74.88,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Horsea|Std+1st|PSA 8": {
+"940089993816": {
+"total": 61.23,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Omastar|Std+1st|PSA 7": {
+"940089989193": {
+"total": 52.16,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Golbat|Std+1st|PSA 7": {
+"940089980861": {
+"total": 52.16,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Lapras|Std|PSA 7": {
+"820351760775": {
+"total": 79.4,
+"last_seen": "2026-11-14"
+},
+"336894872732": {
+"total": 88.46,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Magmar|Std+1st|PSA 7": {
+"940089876540": {
+"total": 83.19,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Krabby|Std+1st|PSA 8": {
+"940089767141": {
+"total": 52.16,
+"last_seen": "2026-11-14"
+},
+"900086505361": {
+"total": 83.94,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Omanyte|Std|PSA 9": {
+"198792653888": {
+"total": 56.72,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Grimer|Std+1st|PSA 3": {
+"940089655034": {
+"total": 52.19,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Ditto|Std|PSA 7": {
+"366807883931": {
+"total": 92.99,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Ekans|Std+1st|PSA 7": {
+"940089583880": {
+"total": 47.62,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Articuno|Std|PSA 8": {
+"366807748891": {
+"total": 124.73,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Gengar|Secret Rare|PSA 4": {
+"920139308020": {
+"total": 283.09,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Articuno|Std|PSA 9": {
+"880112293994": {
+"total": 138.83,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Tentacruel|Std|PSA 9": {
+"287725905709": {
+"total": 74.88,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Magneton|Secret Rare|PSA 1": {
+"820348725482": {
+"total": 149.99,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Moltres|Std+1st|PSA 8": {
+"377641394061": {
+"total": 279.16,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Slowbro|Secret Rare|PSA 7": {
+"860138816646": {
+"total": 149.44,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Lapras|Std|PSA 6": {
+"198790618962": {
+"total": 61.27,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Graveler|Std|PSA 6": {
+"307279613409": {
+"total": 78.5,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Slowpoke|Std|PSA 6": {
+"820347971600": {
+"total": 108.96,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Golbat|Std|PSA 6": {
+"900086428359": {
+"total": 141.97,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Cloyster|Std+1st|PSA 7": {
+"117518128633": {
+"total": 78.5,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Zubat|Std|PSA 9": {
+"307279531940": {
+"total": 74.88,
+"last_seen": "2026-11-14"
+},
+"407355806719": {
+"total": 72.92,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Hitmonlee|EX|PSA 5": {
+"128191151916": {
+"total": 70.3,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Muk|Std|PSA 9": {
+"407358544820": {
+"total": 155.24,
+"last_seen": "2026-11-14"
+},
+"168853670580": {
+"total": 142.88,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Seadra|Std|PSA 8": {
+"117517873325": {
+"total": 69.43,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Sandslash|Std|PSA 7": {
+"117517817592": {
+"total": 60.36,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Lapras|Std+1st|PSA 7": {
+"840121517578": {
+"total": 224.48,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Raichu|Std|PSA 4": {
+"307279169599": {
+"total": 69.43,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Zapdos|Std+1st|PSA 1": {
+"287724280369": {
+"total": 133.8,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Omastar|Std+1st|PSA 6": {
+"307279123548": {
+"total": 88.47,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Lapras|Std+1st|PSA 8": {
+"900085627897": {
+"total": 160.11,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Arbok|Std|PSA 7": {
+"307279101673": {
+"total": 69.43,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Weezing|Std|PSA 9": {
+"307279058633": {
+"total": 96.63,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Golduck|Std|PSA 7": {
+"377639918348": {
+"total": 54.92,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Golduck|Std|PSA 9": {
+"366804052883": {
+"total": 263.47,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Ditto|Std+1st|PSA 7": {
+"920133892010": {
+"total": 202.76,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Ditto|Std|PSA 8": {
+"307278547495": {
+"total": 106.61,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Kingler|Std+1st|PSA 8": {
+"307278527220": {
+"total": 88.47,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Geodude|Std|PSA 9": {
+"307278526503": {
+"total": 70.34,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Psyduck|Std|PSA 8": {
+"900084549710": {
+"total": 87.57,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Mew|Std|PSA 5": {
+"147676943362": {
+"total": 142.88,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Hitmonlee|Std|PSA 5": {
+"820343926986": {
+"total": 79.4,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Omanyte|Std+1st|PSA 8": {
+"900083386720": {
+"total": 88.46,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Grimer|Std+1st|PSA 8": {
+"860134641093": {
+"total": 115.94,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Slowbro|Std+1st|PSA 8": {
+"307277714301": {
+"total": 132.0,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Golbat|EX+1st|PSA 5": {
+"147676174674": {
+"total": 70.34,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Ekans|Std+1st|PSA 5": {
+"147676172639": {
+"total": 65.81,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Articuno|Secret Rare|PSA 1": {
+"820341347202": {
+"total": 165.74,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Aerodactyl|Std|PSA 6": {
+"900081954733": {
+"total": 55.83,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Dragonite|EX|PSA 6": {
+"960180489009": {
+"total": 183.68,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Moltres|EX|PSA 5": {
+"960180489010": {
+"total": 93.01,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Lapras|EX|PSA 6": {
+"960180489013": {
+"total": 65.81,
+"last_seen": "2026-11-14"
+}
+},
+"JP|Fossil|Zapdos|EX|PSA 6": {
+"960180489019": {
+"total": 65.81,
+"last_seen": "2026-11-14"
+}
+},
+"EN|Fossil|Magmar|Std+1st|PSA 9": {
+"198786371714": {
+"total": 84.88,
+"last_seen": "2026-11-14"
 }
 }
 }
